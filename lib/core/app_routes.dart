@@ -4,7 +4,7 @@ import 'package:bogoballers/screens/payment_success_screen.dart';
 import 'package:flutter/material.dart';
 
 final Map<String, WidgetBuilder> appRoutes = {
-  '/client/login/screen': (context) => LoginScreen(),
+  '/auth/login/screen': (context) => LoginScreen(),
   '/payment-success': (context) => const PaymentSuccessScreen(),
   '/payment-cancelled': (context) => const PaymentCancelledScreen()
 };

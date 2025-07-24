@@ -29,7 +29,7 @@ class AppColors {
   static const gray12 = Color(0xFF1E1F24);
 
   static const contrast = Color(0xFFFFFFFF);
-  static const surface = Color(0xCCFFF3EC);
+  static const surface = Color(0xFFF9F9FB);
   static const indicator = color9;
   static const track = color9;
   static const textPrimary = gray12;
@@ -66,7 +66,7 @@ class AppDarkColors {
   static const gray12 = Color(0xFFEEEFF0);
 
   static const contrast = Color(0xFFFFFFFF);
-  static const surface = Color(0x802D1911);
+  static const surface = Color(0xFF19191B);
   static const indicator = color9;
   static const track = color9;
   static const textPrimary = gray12;

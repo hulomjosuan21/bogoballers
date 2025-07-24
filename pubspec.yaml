@@ -69,6 +69,7 @@ dependencies:
   app_links: ^6.4.0
   url_launcher: ^6.3.2
   getwidget: ^6.0.0
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:
@@ -114,6 +115,12 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
+    - family: TeamIcon
+      fonts:
+        - asset: assets/icons/team-icon.ttf
+    - family: LeagueIcon
+      fonts:
+        - asset: assets/icons/league-icon.ttf
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter_28pt-Thin.ttf

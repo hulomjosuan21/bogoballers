@@ -1,5 +1,7 @@
+import 'package:bogoballers/core/app_routes.dart';
 import 'package:bogoballers/core/theme/theme.dart';
-import 'package:bogoballers/screens/player/player_home_screen.dart';
+import 'package:bogoballers/screens/player/player_main_screen.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_main_screen.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatelessWidget {
@@ -11,8 +13,9 @@ class App extends StatelessWidget {
       title: 'BogoBallers',
       theme: lightTheme,
       darkTheme: darkTheme,
+      routes: appRoutes,
       themeMode: ThemeMode.system,
-      home: const PlayerHomeScreen(),
+      home: const TeamManagerMainScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

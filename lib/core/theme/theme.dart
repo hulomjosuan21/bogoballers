@@ -41,14 +41,20 @@ ThemeData get lightTheme {
     ),
     textTheme: _interTextTheme(ThemeData.light().textTheme),
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       foregroundColor: AppColors.textPrimary,
+      iconTheme: IconThemeData(color: AppColors.color9),
+      titleTextStyle: TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Inter',
+      ),
       elevation: 0,
     ),
     inputDecorationTheme: appInputDecorationThemeFrom(
       AppThemeColors.fromAppColors(const AppLightColors()),
     ),
-
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.color9,
@@ -63,12 +69,13 @@ ThemeData get lightTheme {
     switchTheme: SwitchThemeData(
       trackColor: WidgetStateProperty.all(AppColors.track.withAlpha(30)),
       thumbColor: WidgetStateProperty.all(AppColors.color9),
-    ),    dialogTheme: DialogThemeData(
+    ),
+    dialogTheme: DialogThemeData(
       backgroundColor: AppColors.gray2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     extensions: <ThemeExtension<dynamic>>[
-      AppThemeColors.fromAppColors(const AppLightColors()), // ✅ FIXED
+      AppThemeColors.fromAppColors(const AppLightColors()),
     ],
   );
 }
@@ -89,14 +96,21 @@ ThemeData get darkTheme {
       error: AppDarkColors.color10,
       onError: AppDarkColors.contrast,
     ),
-      dialogTheme: DialogThemeData(
+    dialogTheme: DialogThemeData(
       backgroundColor: AppDarkColors.gray2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     textTheme: _interTextTheme(ThemeData.dark().textTheme),
     appBarTheme: AppBarTheme(
-      backgroundColor: AppDarkColors.surface,
+      backgroundColor: AppDarkColors.background,
       foregroundColor: AppDarkColors.textPrimary,
+      iconTheme: IconThemeData(color: AppColors.color9),
+      titleTextStyle: TextStyle(
+        color: AppDarkColors.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Inter',
+      ),
       elevation: 0,
     ),
     inputDecorationTheme: appInputDecorationThemeFrom(
