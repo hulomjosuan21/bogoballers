@@ -16,10 +16,11 @@ class ApiResponse<T> {
     T Function(dynamic json) fromJsonT,
   ) {
     return ApiResponse<T>(
-      status: json['status'] ?? false,
-      message: json['message'] ?? '',
+      status: json['status'],
+      message: json['message'],
       redirect: json['redirect'],
       payload: json['payload'] != null ? fromJsonT(json['payload']) : null,
+      // payload: fromJsonT(json['payload']),
     );
   }
 

@@ -1,12 +1,5 @@
 // ignore_for_file: constant_identifier_names
 
-// enum AccountTypeEnum {
-//   Player(),
-//   Team_Creator(),
-//   LOCAL_ADMINISTRATOR('League_Administrator:Local'),
-//   City_Administrator(''),
-// }
-
 enum AccountTypeEnum {
   PLAYER("Player"),
   TEAM_MANAGER("Team_Manager"),

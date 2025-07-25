@@ -2,6 +2,14 @@
 import 'package:bogoballers/core/enums/user_enum.dart';
 import 'package:dio/dio.dart';
 
+class UserFromToken {
+  final String user_id;
+  final String account_type;
+
+  UserFromToken({required this.user_id, required this.account_type});
+}
+
+
 class UserModel {
   late String user_id;
   String email;
@@ -30,10 +38,6 @@ class UserModel {
   });
 
   UserModel.login({required this.email, required this.password_str});
-
-  Map<String, dynamic> toJsonForLogin() {
-    return {'email': email, 'password_str': password_str};
-  }
 
   FormData toFormDataForLogin() {
     final formMap = {'email': email, 'password_str': password_str};

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bogoballers/core/constants/file_strings.dart';
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/models/user_model.dart';
+import 'package:bogoballers/core/services/auth_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/custom_exceptions.dart';
 import 'package:bogoballers/core/validations/auth_validations.dart';
@@ -28,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool stayLoggedIn = true;
 
   final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final passwordController = TextEditingController(text: 'password123');
 
   Future<void> _handleLogin() async {
     setState(() => isLoading = true);
@@ -43,30 +44,31 @@ class _LoginScreenState extends State<LoginScreen> {
         password_str: passwordController.text,
       );
 
-      // final service = EntityServices();
+      final response = await AuthService.login(
+        u: user.toFormDataForLogin(),
+        s: stayLoggedIn,
+      );
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: response.message,
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
 
-      // final response = await service.login(
-      //   context: context,
-      //   user: user,
-      //   stayLoggedIn: stayLoggedIn,
-      // );
-      // if (mounted) {
-      //   showAppSnackbar(
-      //     context,
-      //     message: response.message,
-      //     title: "Success",
-      //     variant: SnackbarVariant.success,
-      //   );
+        final redirect = response.redirect;
+        if (redirect == null) {
+          throw AppException("Something went wrong!");
+        }
 
-      //   final redirect = response.redirect;
-      //   if (redirect == null) {
-      //     throw AppException("Something went wrong!");
-      //   }
-
-      //   await Navigator.pushReplacementNamed(context, redirect);
-      // }
-    } catch (e) {
+        await Navigator.pushReplacementNamed(context, redirect);
+      }
+    } catch (e, stackTrace) {
       if (context.mounted) {
+        // Log the full error and stack trace for debugging
+        debugPrint('Login error: $e');
+        debugPrint('Stack trace: $stackTrace');
+
         handleErrorCallBack(e, (message) {
           showAppSnackbar(
             context,
@@ -78,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } finally {
       if (context.mounted) {
-        scheduleMicrotask(() => setState(() => isLoading = false));
+        setState(() => isLoading = false);
       }
     }
   }
