@@ -64,7 +64,7 @@ class _TeamCreatorRegisterScreenState extends State<TeamCreatorRegisterScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "Register as a Team Creator",
+                        "Register as a Team Manager",
                         style: TextStyle(
                           fontSize: Sizes.fontSizeMd,
                           fontWeight: FontWeight.w600,
@@ -252,15 +252,15 @@ class _PlayerRegisterScreenState extends State<PlayerRegisterScreen> {
             const SizedBox(height: Sizes.spaceMd),
             AppImagePicker(controller: profileImageController, aspectRatio: 1),
             SizedBox(height: Sizes.spaceSm),
-             GFButton(
-                                    onPressed: profileImageController.pickImage,
-                                    text: 'Select Image',
-                                    color: colors.color9,
-                                    type: GFButtonType.outline,
-                                    shape: GFButtonShape.standard,
-                                    size: GFSize.SMALL,
-                                  ),
-          
+            GFButton(
+              onPressed: profileImageController.pickImage,
+              text: 'Select Image',
+              color: colors.color9,
+              type: GFButtonType.outline,
+              shape: GFButtonShape.standard,
+              size: GFSize.SMALL,
+            ),
+
             SizedBox(height: Sizes.spaceXs),
             Center(
               child: Text(
@@ -450,17 +450,15 @@ class _PlayerRegisterScreenState extends State<PlayerRegisterScreen> {
               key: 'auth_terms_and_conditions',
             ),
             SizedBox(height: Sizes.spaceLg),
-             GFButton(
-                                    onPressed: !hasAcceptedTerms ? null : _handleRegisterPlayer,
-                                    text: 'Register',
-                                    color: colors.color9,
-                                    type: GFButtonType.outline,
-                                    shape: GFButtonShape.standard,
-                                    size: GFSize.MEDIUM,
-                                    fullWidthButton: true,
-                                    
-                                  ),
-         
+            GFButton(
+              onPressed: !hasAcceptedTerms ? null : _handleRegisterPlayer,
+              text: 'Register',
+              color: colors.color9,
+              type: GFButtonType.outline,
+              shape: GFButtonShape.standard,
+              size: GFSize.MEDIUM,
+              fullWidthButton: true,
+            ),
           ],
         ),
       );
@@ -468,11 +466,7 @@ class _PlayerRegisterScreenState extends State<PlayerRegisterScreen> {
 
     return Scaffold(
       body: isRegistering
-          ? Center(
-              child: CircularProgressIndicator(
-                color: colors.color9,
-              ),
-            )
+          ? Center(child: CircularProgressIndicator(color: colors.color9))
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
