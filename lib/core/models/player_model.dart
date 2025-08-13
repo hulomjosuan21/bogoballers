@@ -1,4 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, unnecessary_this
 
 import 'package:bogoballers/core/models/image_url_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';

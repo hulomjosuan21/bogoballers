@@ -12,39 +12,31 @@ class SecureStorageService {
 
   static const String _accessTokenKey = 'access_token';
 
-  /// General write
   Future<void> write({required String key, required String value}) async {
     await _storage.write(key: key, value: value);
   }
 
-  /// General read
   Future<String?> read(String key) async {
     return await _storage.read(key: key);
   }
 
-  /// General delete
   Future<void> delete(String key) async {
     await _storage.delete(key: key);
   }
 
-  /// Delete all
   Future<void> deleteAll() async {
     await _storage.deleteAll();
   }
 
-  /// Check if key exists
   Future<bool> containsKey(String key) async {
     return await _storage.containsKey(key: key);
   }
 
-  /// Save access token (with validation)
   Future<void> saveAccessToken(String token) async {
-    // Validate token format and expiration
     if (token.isEmpty || JwtDecoder.isExpired(token)) {
       throw Exception('Invalid or expired access token');
     }
 
-    // Optional: Validate structure
     final decoded = JwtDecoder.decode(token);
     if (!decoded.containsKey('sub') || !decoded.containsKey('account_type')) {
       throw Exception('Access token missing required claims: sub/account_type');
@@ -72,7 +64,6 @@ class SecureStorageService {
     return UserFromToken(user_id: userId!, account_type: accountType!);
   }
 
-  /// Quick check if token exists and is valid
   Future<bool> hasValidAccessToken() async {
     final token = await read(_accessTokenKey);
     return token != null && !JwtDecoder.isExpired(token);

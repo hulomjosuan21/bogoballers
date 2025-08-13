@@ -8,39 +8,37 @@ import 'package:bogoballers/screens/team_manager/team_manager_main_screen.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatelessWidget {
-  const App({super.key, required this.userFromToken});
-
-  final UserFromToken? userFromToken;
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     Widget homeScreen;
 
-    if (userFromToken == null) {
-      homeScreen = const LoginScreen();
-    } else {
-      try {
-        final accountTypeEnum = AccountTypeEnum.fromValue(
-          userFromToken?.account_type,
-        );
+    // if (userFromToken == null) {
+    //   homeScreen = const LoginScreen();
+    // } else {
+    //   try {
+    //     final accountTypeEnum = AccountTypeEnum.fromValue(
+    //       userFromToken?.account_type,
+    //     );
 
-        switch (accountTypeEnum) {
-          case AccountTypeEnum.PLAYER:
-            homeScreen = const PlayerMainScreen();
-            debugPrint("Logged: Player");
-            break;
-          case AccountTypeEnum.TEAM_MANAGER:
-            homeScreen = const TeamManagerMainScreen();
-            debugPrint("Logged: Team Manager");
-            break;
-          default:
-            homeScreen = const LoginScreen();
-            debugPrint("Logged: Unknown or unsupported account type");
-        }
-      } catch (e) {
-        homeScreen = const LoginScreen();
-      }
-    }
+    //     switch (accountTypeEnum) {
+    //       case AccountTypeEnum.PLAYER:
+    //         homeScreen = const PlayerMainScreen();
+    //         debugPrint("Logged: Player");
+    //         break;
+    //       case AccountTypeEnum.TEAM_MANAGER:
+    //         homeScreen = const TeamManagerMainScreen();
+    //         debugPrint("Logged: Team Manager");
+    //         break;
+    //       default:
+    //         homeScreen = const LoginScreen();
+    //         debugPrint("Logged: Unknown or unsupported account type");
+    //     }
+    //   } catch (e) {
+    //     homeScreen = const LoginScreen();
+    //   }
+    // }
 
     return MaterialApp(
       title: 'BogoBallers',
@@ -48,7 +46,7 @@ class App extends StatelessWidget {
       darkTheme: darkTheme,
       routes: appRoutes,
       themeMode: ThemeMode.system,
-      home: homeScreen,
+      home: LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

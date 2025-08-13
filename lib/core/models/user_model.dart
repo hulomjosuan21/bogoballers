@@ -9,7 +9,6 @@ class UserFromToken {
   UserFromToken({required this.user_id, required this.account_type});
 }
 
-
 class UserModel {
   late String user_id;
   String email;
@@ -69,7 +68,7 @@ class UserModel {
     return {
       'user_id': user_id,
       'email': email,
-      'contact_number': account_type.name,
+      'contact_number': contact_number,
       'account_type': account_type.value,
       'created_at': created_at.toIso8601String(),
       'updated_at': updated_at.toIso8601String(),

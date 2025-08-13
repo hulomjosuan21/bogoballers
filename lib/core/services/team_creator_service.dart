@@ -1,8 +1,8 @@
-import 'package:bogoballers/core/dio_client.dart';
 import 'package:bogoballers/core/helpers/api_reponse.dart';
 import 'package:bogoballers/core/models/player_model_beta.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
+import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/rendering.dart';
 
@@ -32,23 +32,24 @@ class TeamCreatorServices {
     return apiResponse;
   }
 
-Future<List<PlayerTeamWrapper>?> fetchPlayers(String teamId, {String? status}) async {
-  final api = DioClient().client;
+  Future<List<PlayerTeamWrapper>?> fetchPlayers(
+    String teamId, {
+    String? status,
+  }) async {
+    final api = DioClient().client;
 
-  final response = await api.get(
-    '/team/players/$teamId',
-    queryParameters: {
-      if (status != null) 'status': status
-    },
-  );
+    final response = await api.get(
+      '/team/players/$teamId',
+      queryParameters: {if (status != null) 'status': status},
+    );
 
-  final apiResponse = ApiResponse<List<PlayerTeamWrapper>?>.fromJson(
-    response.data,
-    (data) => (data as List)
-        .map((item) => PlayerTeamWrapper.fromJson(item))
-        .toList(),
-  );
+    final apiResponse = ApiResponse<List<PlayerTeamWrapper>?>.fromJson(
+      response.data,
+      (data) => (data as List)
+          .map((item) => PlayerTeamWrapper.fromJson(item))
+          .toList(),
+    );
 
-  return apiResponse.payload;
-}
+    return apiResponse.payload;
+  }
 }

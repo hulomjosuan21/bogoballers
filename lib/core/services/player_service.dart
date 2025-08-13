@@ -1,6 +1,6 @@
-import 'package:bogoballers/core/dio_client.dart';
 import 'package:bogoballers/core/helpers/api_reponse.dart';
 import 'package:bogoballers/core/models/player_model.dart';
+import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
 class PlayerServices {

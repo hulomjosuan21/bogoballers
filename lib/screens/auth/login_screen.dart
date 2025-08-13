@@ -26,7 +26,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
-  bool stayLoggedIn = true;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController(text: 'password123');
@@ -44,10 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password_str: passwordController.text,
       );
 
-      final response = await AuthService.login(
-        u: user.toFormDataForLogin(),
-        s: stayLoggedIn,
-      );
+      final response = await AuthService.login(u: user.toFormDataForLogin());
       if (mounted) {
         showAppSnackbar(
           context,
@@ -56,12 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
           variant: SnackbarVariant.success,
         );
 
-        final redirect = response.redirect;
-        if (redirect == null) {
-          throw AppException("Something went wrong!");
-        }
+        // final redirect = response.redirect;
+        // if (redirect == null) {
+        //   throw AppException("Something went wrong!");
+        // }
 
-        await Navigator.pushReplacementNamed(context, redirect);
+        // await Navigator.pushReplacementNamed(context, redirect);
       }
     } catch (e, stackTrace) {
       if (context.mounted) {
@@ -174,24 +170,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   const SizedBox(height: Sizes.spaceSm),
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      Row(
-                                        children: [
-                                          Checkbox(
-                                            value: stayLoggedIn,
-                                            onChanged: (value) => setState(
-                                              () =>
-                                                  stayLoggedIn = value ?? false,
-                                            ),
-                                          ),
-                                          const Text(
-                                            "Stay logged in",
-                                            style: TextStyle(fontSize: 10),
-                                          ),
-                                        ],
-                                      ),
                                       GestureDetector(
                                         onTap: () {}, // forgot password
                                         child: Text(
