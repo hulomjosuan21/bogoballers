@@ -1,4 +1,3 @@
-import 'package:bogoballers/core/models/user_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -43,30 +42,6 @@ class SecureStorageService {
     }
 
     await write(key: _accessTokenKey, value: token);
-  }
-
-  Future<UserFromToken?> getUserDataFromToken() async {
-    final token = await read(_accessTokenKey);
-
-    if (token == null || JwtDecoder.isExpired(token)) {
-      return null;
-    }
-
-    final decodedToken = JwtDecoder.decode(token);
-
-    final userId = decodedToken['sub']?.toString();
-    final accountType = decodedToken['account_type']?.toString();
-
-    if (userId == null && accountType == null) {
-      return null;
-    }
-
-    return UserFromToken(user_id: userId!, account_type: accountType!);
-  }
-
-  Future<bool> hasValidAccessToken() async {
-    final token = await read(_accessTokenKey);
-    return token != null && !JwtDecoder.isExpired(token);
   }
 }
 

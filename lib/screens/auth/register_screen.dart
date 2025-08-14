@@ -2,7 +2,6 @@ import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/gender_enum.dart';
 import 'package:bogoballers/core/enums/user_enum.dart';
 import 'package:bogoballers/core/extension/extensions.dart';
-import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
 import 'package:bogoballers/core/services/player_service.dart';
 import 'package:bogoballers/core/services/team_creator_service.dart';
@@ -139,7 +138,7 @@ class _TeamCreatorRegisterScreenState extends State<TeamCreatorRegisterScreen> {
         confirmPassController: confirmPassController,
       );
 
-      final user = UserModel.create(
+      final user = CreateUser(
         email: emailController.text,
         contact_number: phoneNumber!,
         password_str: passwordController.text,
@@ -499,42 +498,42 @@ class _PlayerRegisterScreenState extends State<PlayerRegisterScreen> {
         throw ValidationException("Please select an organization logo!");
       }
 
-      final user = UserModel.create(
+      final user = CreateUser(
         email: emailController.text,
         contact_number: phoneNumber!,
         password_str: passwordController.text,
       );
 
-      final player = PlayerModel.create(
-        full_name: fullNameController.text,
-        gender: selectedGender.value!.name,
-        player_address: addressController.text,
-        birth_date: selectedBirthDate!,
-        jersey_name: jerseyNameController.text,
-        jersey_number: double.parse(jerseyNumberController.text),
-        position: selectedPositions.value.join(', '),
-        user: user,
-        profile_image: multipartFile,
-      );
+      // final player = PlayerModel.create(
+      //   full_name: fullNameController.text,
+      //   gender: selectedGender.value!.name,
+      //   player_address: addressController.text,
+      //   birth_date: selectedBirthDate!,
+      //   jersey_name: jerseyNameController.text,
+      //   jersey_number: double.parse(jerseyNumberController.text),
+      //   position: selectedPositions.value.join(', '),
+      //   user: user,
+      //   profile_image: multipartFile,
+      // );
 
-      final service = PlayerServices();
+      // final service = PlayerServices();
 
-      final response = await service.createNewPlayer(player);
-      if (mounted) {
-        showAppSnackbar(
-          context,
-          message: response.message,
-          title: "Success",
-          variant: SnackbarVariant.success,
-        );
+      // final response = await service.createNewPlayer(player);
+      // if (mounted) {
+      //   showAppSnackbar(
+      //     context,
+      //     message: response.message,
+      //     title: "Success",
+      //     variant: SnackbarVariant.success,
+      //   );
 
-        final redirect = response.redirect;
-        if (redirect == null) {
-          throw AppException("Something went wrong!");
-        }
+      //   final redirect = response.redirect;
+      //   if (redirect == null) {
+      //     throw AppException("Something went wrong!");
+      //   }
 
-        await Navigator.pushReplacementNamed(context, redirect);
-      }
+      //   await Navigator.pushReplacementNamed(context, redirect);
+      // }
     } catch (e) {
       if (context.mounted) {
         handleErrorCallBack(e, (message) {

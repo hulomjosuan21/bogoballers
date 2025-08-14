@@ -38,12 +38,12 @@ class _LoginScreenState extends State<LoginScreen> {
         passwordController: passwordController,
       );
 
-      final user = UserModel.login(
+      final user = UserLogin(
         email: emailController.text,
-        password_str: passwordController.text,
+        password: passwordController.text,
       );
 
-      final response = await AuthService.login(u: user.toFormDataForLogin());
+      final response = await AuthService.login(u: user.toFormData());
       if (mounted) {
         showAppSnackbar(
           context,

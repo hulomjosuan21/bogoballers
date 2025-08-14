@@ -6,10 +6,7 @@ import 'package:dio/dio.dart';
 class PlayerServices {
   Future<ApiResponse> createNewPlayer(PlayerModel player) async {
     final api = DioClient().client;
-    Response response = await api.post(
-      '/entity/create-new/player',
-      data: player.toFormDataForCreation(),
-    );
+    Response response = await api.post('/entity/create-new/player', data: {});
     final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
     return apiResponse;
   }

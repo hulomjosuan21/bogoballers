@@ -1,8 +1,6 @@
 // ignore_for_file: unused_catch_clause
 
 import 'package:bogoballers/core/helpers/api_reponse.dart';
-import 'package:bogoballers/core/models/player_model.dart';
-import 'package:bogoballers/core/models/user_model.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:bogoballers/core/services/secure_storage_service.dart';
 import 'package:bogoballers/main.dart';
@@ -44,24 +42,32 @@ class AuthService {
   //   }
   // }
 
+  static Future<void> setQuartAuthCookie(String? cookie) async {
+    if (cookie == null) {
+      throw Exception('Cookie is null');
+    }
+
+    final match = RegExp(r'QUART_AUTH=([^;]+)').firstMatch(cookie);
+    if (match == null || match.group(1) == null) {
+      throw Exception('QUART_AUTH not found in cookie');
+    }
+
+    final quartAuth = match.group(1)!;
+
+    await SecureStorageService.instance.write(
+      key: 'QUART_AUTH',
+      value: quartAuth,
+    );
+  }
+
   static Future<ApiResponse<void>> login({required FormData u}) async {
     final api = DioClient().client;
 
     final response = await api.post('/entity/login', data: u);
 
-    final setCookie = response.headers['set-cookie']?.first;
-    if (setCookie != null) {
-      final match = RegExp(r'QUART_AUTH=([^;]+)').firstMatch(setCookie);
-      if (match != null) {
-        final quartAuth = match.group(1)!;
-        debugPrint('🍪 QUART_AUTH: $quartAuth');
+    final cookie = response.headers['set-cookie']?.first;
 
-        await SecureStorageService.instance.write(
-          key: 'QUART_AUTH',
-          value: quartAuth,
-        );
-      }
-    }
+    setQuartAuthCookie(cookie);
 
     final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
       response.data,
