@@ -1,11 +1,49 @@
+// ignore_for_file: unused_catch_clause
+
 import 'package:bogoballers/core/helpers/api_reponse.dart';
+import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:bogoballers/core/services/secure_storage_service.dart';
+import 'package:bogoballers/main.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class AuthService {
+  // static Future<void> getCurrentUserAndNavigate() async {
+  //   try {
+  //     final api = DioClient().client;
+  //     final response = await api.get('/entity/auth');
+
+  //     if (response.statusCode == 200 && response.data != null) {
+  //       final data = Map<String, dynamic>.from(response.data);
+  //       if (data.containsKey('player_id')) {
+  //         final player = PlayerModel.fromJson(data);
+  //         debugPrint("👤 Player JSON: ${player.toJson()}");
+  //         navigatorKey.currentState?.pushReplacementNamed(
+  //           '/player/main/screen',
+  //         );
+  //       } else {
+  //         final user = UserModel.fromJson(data);
+  //         debugPrint("👤 User JSON: ${user.toJson()}");
+  //         if (user.account_type.value == 'Team_Manager') {
+  //           navigatorKey.currentState?.pushReplacementNamed(
+  //             '/team-manager/main/screen',
+  //           );
+  //         } else {
+  //           navigatorKey.currentState?.pushReplacementNamed('/auth/login');
+  //         }
+  //       }
+  //     } else {
+  //       navigatorKey.currentState?.pushReplacementNamed('/auth/login');
+  //     }
+  //   } on DioException catch (e) {
+  //     navigatorKey.currentState?.pushReplacementNamed('/auth/login');
+  //   } catch (e) {
+  //     navigatorKey.currentState?.pushReplacementNamed('/auth/login');
+  //   }
+  // }
+
   static Future<ApiResponse<void>> login({required FormData u}) async {
     final api = DioClient().client;
 
@@ -31,37 +69,6 @@ class AuthService {
     );
 
     return apiResponse;
-  }
-
-  static Future<ApiResponse<UserModel>?> getCurrentUser() async {
-    try {
-      final api = DioClient().client;
-
-      final response = await api.get('/entity/auth');
-
-      if (response.statusCode == 200 && response.data != null) {
-        final apiResponse = ApiResponse<UserModel>.fromJson(
-          Map<String, dynamic>.from(response.data),
-          (json) => UserModel.fromJson(Map<String, dynamic>.from(json)),
-        );
-
-        if (apiResponse.payload != null) {
-          debugPrint("👤 Current user JSON:\n${apiResponse.payload!.toJson()}");
-        }
-
-        return apiResponse;
-      } else {
-        debugPrint('No user data returned: ${response.data}');
-      }
-    } on DioException catch (e) {
-      debugPrint(
-        'Error fetching current user: ${e.response?.statusCode} ${e.message}',
-      );
-    } catch (e) {
-      debugPrint('Unexpected error: $e');
-    }
-
-    return null;
   }
 
   static Future<void> playerRegister() async {}

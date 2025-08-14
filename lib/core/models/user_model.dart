@@ -33,7 +33,6 @@ class UserModel {
     required this.email,
     required this.contact_number,
     required this.password_str,
-    required this.account_type,
   });
 
   UserModel.login({required this.email, required this.password_str});
@@ -48,19 +47,18 @@ class UserModel {
       'email': email,
       'password_str': password_str,
       'contact_number': contact_number,
-      'account_type': account_type.value,
     };
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      account_type: AccountTypeEnum.fromValue(json['account_type'])!,
-      contact_number: json['contact_number'],
-      created_at: DateTime.parse(json['created_at']),
-      email: json['email'],
-      is_verified: json['is_verified'],
-      updated_at: DateTime.parse(json['updated_at']),
       user_id: json['user_id'],
+      email: json['email'],
+      contact_number: json['contact_number'],
+      account_type: AccountTypeEnum.fromValue(json['account_type'])!,
+      is_verified: json['is_verified'],
+      created_at: DateTime.parse(json['created_at']),
+      updated_at: DateTime.parse(json['updated_at']),
     );
   }
 

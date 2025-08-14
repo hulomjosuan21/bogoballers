@@ -4,15 +4,13 @@ import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/rendering.dart';
 
 class TeamCreatorServices {
   Future<ApiResponse> createNewTeamCreator(UserModel user) async {
     final api = DioClient().client;
 
-    debugPrint(user.toJsonForCreation().toString());
     Response response = await api.post(
-      '/entity/create-new/team-creator',
+      '/team-manager/create',
       data: user.toJsonForCreation(),
     );
     final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
@@ -25,7 +23,7 @@ class TeamCreatorServices {
       '/team/new',
       data: team.toFormDataForCreation(),
     );
-    final apiResponse = await ApiResponse<TeamModel>.fromJson(
+    final apiResponse = ApiResponse<TeamModel>.fromJson(
       response.data,
       (data) => TeamModel.fromJson(data),
     );

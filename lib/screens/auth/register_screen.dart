@@ -143,7 +143,6 @@ class _TeamCreatorRegisterScreenState extends State<TeamCreatorRegisterScreen> {
         email: emailController.text,
         contact_number: phoneNumber!,
         password_str: passwordController.text,
-        account_type: AccountTypeEnum.TEAM_MANAGER,
       );
 
       final service = TeamCreatorServices();
@@ -504,7 +503,6 @@ class _PlayerRegisterScreenState extends State<PlayerRegisterScreen> {
         email: emailController.text,
         contact_number: phoneNumber!,
         password_str: passwordController.text,
-        account_type: AccountTypeEnum.PLAYER,
       );
 
       final player = PlayerModel.create(

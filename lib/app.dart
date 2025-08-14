@@ -1,52 +1,56 @@
 import 'package:bogoballers/core/app_routes.dart';
-import 'package:bogoballers/core/enums/user_enum.dart';
-import 'package:bogoballers/core/models/user_model.dart';
 import 'package:bogoballers/core/theme/theme.dart';
 import 'package:bogoballers/screens/auth/login_screen.dart';
-import 'package:bogoballers/screens/player/player_main_screen.dart';
-import 'package:bogoballers/screens/team_manager/team_manager_main_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:app_links/app_links.dart';
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
 
   @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  late final AppLinks _appLinks;
+
+  @override
+  void initState() {
+    super.initState();
+    _appLinks = AppLinks();
+
+    _appLinks.getInitialLink().then((uri) {
+      if (uri != null && mounted) {
+        _handleDeepLink(uri);
+      }
+    });
+
+    _appLinks.uriLinkStream.listen((uri) {
+      if (mounted) {
+        _handleDeepLink(uri);
+      }
+    });
+  }
+
+  void _handleDeepLink(Uri uri) {
+    final route = uri.path.isNotEmpty ? uri.path : '/default';
+
+    if (appRoutes.containsKey(route)) {
+      Navigator.pushNamed(context, route);
+    } else {
+      debugPrint('Unknown deep link route: $route');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Widget homeScreen;
-
-    // if (userFromToken == null) {
-    //   homeScreen = const LoginScreen();
-    // } else {
-    //   try {
-    //     final accountTypeEnum = AccountTypeEnum.fromValue(
-    //       userFromToken?.account_type,
-    //     );
-
-    //     switch (accountTypeEnum) {
-    //       case AccountTypeEnum.PLAYER:
-    //         homeScreen = const PlayerMainScreen();
-    //         debugPrint("Logged: Player");
-    //         break;
-    //       case AccountTypeEnum.TEAM_MANAGER:
-    //         homeScreen = const TeamManagerMainScreen();
-    //         debugPrint("Logged: Team Manager");
-    //         break;
-    //       default:
-    //         homeScreen = const LoginScreen();
-    //         debugPrint("Logged: Unknown or unsupported account type");
-    //     }
-    //   } catch (e) {
-    //     homeScreen = const LoginScreen();
-    //   }
-    // }
-
     return MaterialApp(
       title: 'BogoBallers',
       theme: lightTheme,
       darkTheme: darkTheme,
       routes: appRoutes,
       themeMode: ThemeMode.system,
-      home: LoginScreen(),
+      home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

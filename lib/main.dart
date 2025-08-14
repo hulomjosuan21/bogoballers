@@ -26,7 +26,6 @@ Future<void> main() async {
     // await SecureStorageService.instance.deleteAll();
 
     await NotificationService.instance.initialize();
-    await AuthService.getCurrentUser();
     Future.microtask(() => BackgroundSyncService.instance.start());
 
     runApp(riverpod.ProviderScope(child: App()));
