@@ -1,3 +1,4 @@
+import 'package:bogoballers/core/theme/app_colors.dart';
 import 'package:bogoballers/screens/auth/login_screen.dart';
 import 'package:bogoballers/screens/payment_cancelled_screen.dart';
 import 'package:bogoballers/screens/payment_success_screen.dart';
@@ -10,12 +11,16 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("Test")));
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(color: AppLightColors().color9),
+      ),
+    );
   }
 }
 
 final Map<String, WidgetBuilder> appRoutes = {
-  '/default': (context) => SplashScreen(),
+  '/splash': (context) => SplashScreen(),
   '/auth/login': (context) => LoginScreen(),
   '/player/main/screen': (context) => PlayerMainScreen(),
   '/team-manager/main/screen': (context) => TeamManagerMainScreen(),

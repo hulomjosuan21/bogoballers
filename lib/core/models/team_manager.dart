@@ -15,6 +15,32 @@ class TeamManager extends User {
     required super.updated_at,
     required this.display_name,
   });
+
+  factory TeamManager.fromMap(Map<String, dynamic> map) {
+    return TeamManager(
+      user_id: map['user_id'],
+      email: map['email'],
+      contact_number: map['contact_number'],
+      account_type: map['account_type'],
+      is_verified: map['is_verified'],
+      created_at: map['created_at'],
+      updated_at: map['updated_at'],
+      display_name: map['display_name'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': user_id,
+      'email': email,
+      'contact_number': contact_number,
+      'account_type': account_type,
+      'is_verified': is_verified,
+      'created_at': created_at,
+      'updated_at': updated_at,
+      'display_name': display_name,
+    };
+  }
 }
 
 class CreateTeamManager {

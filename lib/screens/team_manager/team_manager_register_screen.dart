@@ -44,105 +44,106 @@ class _TeamManagerRegisterScreenState extends State<TeamManagerRegisterScreen> {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
 
     return Scaffold(
-      body: Center(
-        child: isRegistering
-            ? CircularProgressIndicator(color: colors.color9)
-            : SingleChildScrollView(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 350),
-                  padding: const EdgeInsets.all(Sizes.spaceMd),
-                  decoration: BoxDecoration(
-                    color: colors.gray1,
-                    border: Border.all(
-                      width: Sizes.borderWidthSm,
-                      color: colors.gray6,
-                    ),
-                    borderRadius: BorderRadius.circular(Sizes.radiusMd),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Register as a Team Manager",
-                        style: TextStyle(
-                          fontSize: Sizes.fontSizeMd,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: Sizes.spaceSm),
-                      Text(
-                        "Fill in the required details below to create your profile.",
-                        style: TextStyle(fontSize: 11, color: colors.gray8),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: Sizes.spaceMd),
-                      PHPhoneInput(
-                        phoneValue: phoneNumber,
-                        onChanged: (phone) => phoneNumber = phone,
-                      ),
-                      const SizedBox(height: Sizes.spaceMd),
-                      TextField(
-                        controller: emailController,
-                        decoration: const InputDecoration(
-                          labelText: "Email",
-                          prefixIcon: Icon(Icons.email),
-                        ),
-                      ),
-                      const SizedBox(height: Sizes.spaceMd),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: displayNameController,
-                              decoration: const InputDecoration(
-                                labelText: "Display name",
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                displayNameController.text =
-                                    generateDisplayName();
-                              });
-                            },
-                            icon: Icon(Icons.refresh),
-                          ),
-                        ],
-                      ),
-                      PasswordField(
-                        controller: passwordController,
-                        hintText: 'Password',
-                      ),
-                      const SizedBox(height: Sizes.spaceMd),
-                      PasswordField(
-                        controller: confirmPassController,
-                        hintText: 'Confirm Password',
-                      ),
-                      const SizedBox(height: Sizes.spaceMd),
-                      termAndCondition(
-                        context: context,
-                        hasAcceptedTerms: hasAcceptedTerms,
-                        onChanged: (value) {
-                          setState(() {
-                            hasAcceptedTerms = value ?? false;
-                          });
-                        },
-                        key: 'auth_terms_and_conditions',
-                      ),
-                      const SizedBox(height: Sizes.spaceLg),
-                      GFButton(
-                        onPressed: _handleRegister,
-                        text: 'Register',
-                        color: colors.color9,
-                        shape: GFButtonShape.standard,
-                        size: GFSize.MEDIUM,
-                        fullWidthButton: true,
-                      ),
-                    ],
-                  ),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text("Register as a Team Manager"),
+        flexibleSpace: Container(color: colors.gray1),
+      ),
+      body: Container(
+        padding: const EdgeInsets.all(Sizes.spaceLg),
+        decoration: BoxDecoration(
+          color: colors.gray1,
+          borderRadius: BorderRadius.circular(Sizes.radiusMd),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "",
+                style: TextStyle(
+                  fontSize: Sizes.fontSizeMd,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(height: Sizes.spaceSm),
+              Text(
+                '* Please fill in your account details below.\n'
+                'Make sure your email and phone number are valid.',
+                style: TextStyle(fontSize: 10, color: colors.gray11),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              PHPhoneInput(
+                phoneValue: phoneNumber,
+                onChanged: (phone) => phoneNumber = phone,
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: displayNameController,
+                      decoration: const InputDecoration(
+                        labelText: "Display name",
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        displayNameController.text = generateDisplayName();
+                      });
+                    },
+                    icon: Icon(Icons.refresh),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              PasswordField(
+                controller: passwordController,
+                hintText: 'Password',
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              PasswordField(
+                controller: confirmPassController,
+                hintText: 'Confirm Password',
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              termAndCondition(
+                context: context,
+                hasAcceptedTerms: hasAcceptedTerms,
+                onChanged: (value) {
+                  setState(() {
+                    hasAcceptedTerms = value ?? false;
+                  });
+                },
+                key: 'auth_terms_and_conditions',
+              ),
+              const SizedBox(height: Sizes.spaceLg),
+              GFButton(
+                onPressed: (hasAcceptedTerms && !isRegistering)
+                    ? _handleRegister
+                    : null,
+                text: 'Register',
+                color: colors.color9,
+                shape: GFButtonShape.standard,
+                disabledColor: colors.color6,
+                disabledTextColor: colors.gray1,
+                size: GFSize.MEDIUM,
+                fullWidthButton: true,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

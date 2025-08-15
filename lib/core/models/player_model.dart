@@ -72,6 +72,54 @@ class PlayerModel extends Player {
     required super.updated_at,
     required super.user,
   });
+
+  factory PlayerModel.fromMap(Map<String, dynamic> json) {
+    return PlayerModel(
+      player_id: json['player_id'],
+      user_id: json['user_id'],
+      full_name: json['full_name'],
+      gender: json['gender'],
+      birth_date: json['birth_date'],
+      player_address: json['player_address'],
+      jersey_name: json['jersey_name'],
+      jersey_number: json['jersey_number'],
+      position: json['position'],
+      height_in: json['height_in'],
+      weight_kg: json['weight_kg'],
+      games_played: json['games_played'],
+      points_scored: json['points_scored'],
+      assists: json['assists'],
+      rebounds: json['rebounds'],
+      profile_image_url: json['profile_image_url'],
+      created_at: json['created_at'],
+      updated_at: json['updated_at'],
+      user: UserModel.fromMap(json['user']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'player_id': player_id,
+      'user_id': user_id,
+      'full_name': full_name,
+      'gender': gender,
+      'birth_date': birth_date,
+      'player_address': player_address,
+      'jersey_name': jersey_name,
+      'jersey_number': jersey_number,
+      'position': position,
+      'height_in': height_in,
+      'weight_kg': weight_kg,
+      'games_played': games_played,
+      'points_scored': points_scored,
+      'assists': assists,
+      'rebounds': rebounds,
+      'profile_image_url': profile_image_url,
+      'created_at': created_at,
+      'updated_at': updated_at,
+      'user': user.toMap(),
+    };
+  }
 }
 
 class CreatePlayer {

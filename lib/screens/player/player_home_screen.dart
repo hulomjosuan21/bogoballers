@@ -1,3 +1,4 @@
+import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -9,11 +10,24 @@ class PlayerHomeScreen extends StatelessWidget {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(onPressed: (){}, icon: Icon(Icons.arrow_back)),
         title: Text("Home"),
         centerTitle: true,
+        actions: [
+          PopupMenuButton(
+            icon: Icon(Icons.more_vert),
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(onTap: () {}, child: Text('Test')),
+              PopupMenuItem(
+                onTap: () => logout(context),
+                child: Text('Logout'),
+              ),
+            ],
+          ),
+        ],
       ),
-      body: Center(child: Text("Home",style: TextStyle(color: colors.textPrimary),)),
+      body: Center(
+        child: Text("Home", style: TextStyle(color: colors.textPrimary)),
+      ),
     );
   }
 }

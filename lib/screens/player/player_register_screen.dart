@@ -119,12 +119,12 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
             'Which positions do you play?',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: Sizes.fontSizeLg,
+              fontSize: 12,
               color: colors.gray11,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: Sizes.spaceMd),
+          const SizedBox(height: Sizes.spaceLg),
           Wrap(
             alignment: WrapAlignment.center,
             spacing: 8,
@@ -134,9 +134,21 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    isSelected ? positions.remove(pos) : positions.add(pos);
+                    if (isSelected) {
+                      positions.remove(pos);
+                    } else if (positions.length < 3) {
+                      positions.add(pos);
+                    } else {
+                      showAppSnackbar(
+                        context,
+                        message: "You can only select up to 3 positions.",
+                        title: "Error",
+                        variant: SnackbarVariant.error,
+                      );
+                    }
                   });
                 },
+
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -145,12 +157,12 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
                   decoration: BoxDecoration(
                     color: isSelected ? colors.color9 : colors.color1,
                     border: Border.all(color: colors.gray6, width: 0.5),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(Sizes.radiusMd),
                   ),
                   child: Text(
                     pos,
                     style: TextStyle(
-                      color: isSelected ? colors.color1 : colors.color9,
+                      color: isSelected ? colors.gray1 : colors.gray9,
                     ),
                   ),
                 ),
@@ -169,14 +181,10 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'Please fill in your account details below.\n'
+            '* Please fill in your account details below.\n'
             'Make sure your email and phone number are valid.',
+            style: TextStyle(fontSize: 10, color: colors.gray11),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.gray11,
-              fontWeight: FontWeight.w500,
-            ),
           ),
           const SizedBox(height: Sizes.spaceMd),
           PHPhoneInput(
@@ -293,7 +301,6 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
                 );
               },
             ),
-
             DateTimePickerField(
               selectedDate: selectedBirthDate,
               labelText: 'Birthdate',
@@ -354,6 +361,17 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
               },
               key: 'auth_terms_and_conditions',
             ),
+            GFButton(
+              onPressed: (hasAcceptedTerms && !isProcessing)
+                  ? _handleRegister
+                  : null,
+              disabledColor: colors.color6,
+              disabledTextColor: colors.gray1,
+              text: "Register",
+              size: GFSize.MEDIUM,
+              color: colors.color9,
+              fullWidthButton: true,
+            ),
           ],
         ),
       ),
@@ -384,30 +402,28 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: () {
+              if (_currentPage == 0) {
+                return MainAxisAlignment.end;
+              } else if (_currentPage == 2) {
+                return MainAxisAlignment.start;
+              } else {
+                return MainAxisAlignment.spaceBetween;
+              }
+            }(),
             children: [
-              GFButton(
-                onPressed: _previousPage,
-                text: "Back",
-                size: GFSize.SMALL,
-                color: colors.gray9,
-                type: GFButtonType.outline,
-              ),
+              if (_currentPage != 0)
+                GFButton(
+                  onPressed: _previousPage,
+                  text: "Back",
+                  size: GFSize.SMALL,
+                  color: colors.gray11,
+                  type: GFButtonType.transparent,
+                ),
               if (_currentPage < 2)
                 GFButton(
                   onPressed: _nextPage,
                   text: "Next",
-                  size: GFSize.SMALL,
-                  color: colors.color9,
-                ),
-              if (_currentPage == 2)
-                GFButton(
-                  onPressed: hasAcceptedTerms || isProcessing
-                      ? () => _handleRegister()
-                      : null,
-                  disabledColor: colors.color6,
-                  disabledTextColor: colors.gray1,
-                  text: "Register",
                   size: GFSize.SMALL,
                   color: colors.color9,
                 ),
