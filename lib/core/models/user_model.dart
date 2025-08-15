@@ -68,23 +68,3 @@ class UserModel extends User {
     };
   }
 }
-
-class CreateUser {
-  final String email;
-  final String password_str;
-  final String contact_number;
-
-  CreateUser({
-    required this.email,
-    required this.password_str,
-    required this.contact_number,
-  });
-
-  Map<String, String> toFormData() {
-    return {
-      'email': email,
-      'password_str': password_str,
-      'contact_number': contact_number,
-    };
-  }
-}

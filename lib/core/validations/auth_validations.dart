@@ -1,8 +1,8 @@
 import 'package:bogoballers/core/constants/regex.dart';
-import 'package:bogoballers/core/enums/gender_enum.dart';
 import 'package:bogoballers/core/utils/custom_exceptions.dart';
 import 'package:bogoballers/core/utils/league_utils.dart';
 import 'package:bogoballers/core/validations/validators.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 void validateOrganizationFields({
@@ -38,16 +38,17 @@ void validateOrganizationFields({
 
 void validatePlayerFields({
   required TextEditingController fullNameController,
-  required ValueNotifier<Gender?> selectedGender,
+  required ValueNotifier<String?> selectedGender,
   required DateTime? selectedBirthDate,
   required TextEditingController jerseyNameController,
   required TextEditingController jerseyNumberController,
-  required ValueNotifier<Set<String>> selectedPositions,
+  required List<String> selectedPositions,
   required TextEditingController emailController,
   required TextEditingController passwordController,
   required TextEditingController confirmPassController,
-  required TextEditingController addressController,
+  required String? address,
   required String? fullPhoneNumber,
+  required MultipartFile? profileImage,
 }) {
   final fullName = fullNameController.text.trim();
   if (fullName.isEmpty) {
@@ -64,7 +65,7 @@ void validatePlayerFields({
   if (selectedBirthDate == null) {
     throw ValidationException("Birthdate must be selected");
   }
-  if (addressController.text.trim().isEmpty) {
+  if (address == null) {
     throw ValidationException("Addres name cannot be empty");
   }
   if (jerseyNameController.text.trim().isEmpty) {
@@ -76,11 +77,8 @@ void validatePlayerFields({
   if (double.tryParse(jerseyNumberController.text) == null) {
     throw ValidationException("Jersey number must be numeric");
   }
-  if (selectedPositions.value.isEmpty) {
+  if (selectedPositions.isEmpty) {
     throw ValidationException("At least one position must be selected");
-  }
-  if (selectedPositions.value.length > 2) {
-    throw ValidationException("You can only select up to two positions");
   }
   if (emailController.text.trim().isEmpty) {
     throw ValidationException("Email cannot be empty");
@@ -88,7 +86,9 @@ void validatePlayerFields({
   if (passwordController.text.trim().isEmpty) {
     throw ValidationException("Password cannot be empty");
   }
-
+  if (profileImage == null) {
+    throw ValidationException("Profile cannot be empty");
+  }
   if (passwordController.text.trim() != confirmPassController.text.trim()) {
     throw ValidationException("Passwords do not match");
   }
@@ -100,10 +100,11 @@ void validatePlayerFields({
   }
 }
 
-void validateTeamCreatorFields({
+void validateTeamManagerFields({
   required TextEditingController emailController,
   required TextEditingController passwordController,
   required TextEditingController confirmPassController,
+  required TextEditingController displayNameController,
   required String? phoneNumber,
 }) {
   if (emailController.text.trim().isEmpty) {
@@ -112,12 +113,17 @@ void validateTeamCreatorFields({
   if (passwordController.text.trim().isEmpty) {
     throw ValidationException("Password cannot be empty");
   }
-
+  if (displayNameController.text.trim().isEmpty) {
+    throw ValidationException("Display name cannot be empty");
+  }
   if (passwordController.text.trim() != confirmPassController.text.trim()) {
     throw ValidationException("Passwords do not match");
   }
   if (phoneNumber == null || phoneNumber.trim().isEmpty) {
     throw ValidationException("Phone number cannot be empty");
+  }
+  if (!isValidateContactNumber(phoneNumber)) {
+    throw ValidationException("Invalid Phone number");
   }
   if (!isValidateContactNumber(phoneNumber)) {
     throw ValidationException("Invalid Phone number");

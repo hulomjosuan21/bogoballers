@@ -1,11 +1,10 @@
 import 'package:bogoballers/core/helpers/api_reponse.dart';
-import 'package:bogoballers/core/models/user_model.dart';
-import 'package:bogoballers/core/models/team_model.dart';
+import 'package:bogoballers/core/models/team_manager.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
-class TeamCreatorServices {
-  Future<ApiResponse> createNewTeamCreator(CreateUser user) async {
+class TeamManagerServices {
+  Future<ApiResponse> createNewTeamManager(CreateTeamManager user) async {
     final api = DioClient().client;
 
     Response response = await api.post(

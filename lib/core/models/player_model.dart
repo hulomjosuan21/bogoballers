@@ -75,7 +75,9 @@ class PlayerModel extends Player {
 }
 
 class CreatePlayer {
-  final String user_id;
+  final String email;
+  final String password_str;
+  final String contact_number;
   final String full_name;
   final String gender;
   final String birth_date;
@@ -83,12 +85,12 @@ class CreatePlayer {
   final String jersey_name;
   final double jersey_number;
   final List<String> position;
-  final double height_in;
-  final double weight_kg;
   final MultipartFile profile_image;
 
   CreatePlayer({
-    required this.user_id,
+    required this.email,
+    required this.password_str,
+    required this.contact_number,
     required this.full_name,
     required this.gender,
     required this.birth_date,
@@ -96,14 +98,14 @@ class CreatePlayer {
     required this.jersey_name,
     required this.jersey_number,
     required this.position,
-    required this.height_in,
-    required this.weight_kg,
     required this.profile_image,
   });
 
   FormData toFormDataForCreation() {
     return FormData.fromMap({
-      "user_id": user_id,
+      "email": email,
+      "password_str": password_str,
+      "contact_number": contact_number,
       "full_name": full_name,
       "gender": gender,
       "birth_date": birth_date,
@@ -111,8 +113,6 @@ class CreatePlayer {
       "jersey_name": jersey_name,
       "jersey_number": jersey_number,
       "position": jsonEncode(position),
-      "height_in": height_in,
-      "weight_kg": weight_kg,
       "profile_image": profile_image,
     });
   }

@@ -2,7 +2,8 @@ import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/widget/auth_navigator.dart';
 import 'package:bogoballers/screens/auth/login_screen.dart';
-import 'package:bogoballers/screens/auth/register_screen.dart';
+import 'package:bogoballers/screens/player/player_register_screen.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -33,11 +34,7 @@ class ClientAuthScreen extends StatelessWidget {
           padding: EdgeInsets.all(Sizes.spaceMd),
           child: Column(
             children: [
-              Icon(
-                icon,
-                size: Sizes.fontSizeLg * 2,
-                color: colors.color9,
-              ),
+              Icon(icon, size: Sizes.fontSizeLg * 2, color: colors.color9),
               SizedBox(height: Sizes.spaceSm),
               Text(text),
             ],
@@ -82,7 +79,7 @@ class ClientAuthScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return TeamCreatorRegisterScreen();
+                        return TeamManagerRegisterScreen();
                       },
                     ),
                   ),
