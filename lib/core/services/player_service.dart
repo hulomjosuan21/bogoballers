@@ -3,27 +3,25 @@ import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
-class PlayerServices {
-  Future<ApiResponse> createNewPlayer(PlayerModel player) async {
+class PlayerService {
+  static Future<ApiResponse> createNewPlayer(FormData player) async {
     final api = DioClient().client;
-    Response response = await api.post(
-      '/entity/create-new/player',
-      data: player.toFormDataForCreation(),
-    );
+    Response response = await api.post('/player/create', data: player);
     final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
     return apiResponse;
   }
 
-  static Future<ApiResponse> updatePlayer({
-    required String player_id,
-    required Map<String, dynamic> json,
-  }) async {
+  static Future<PlayerModel> fetchPlayer() async {
     final api = DioClient().client;
-    Response response = await api.put(
-      '/player/update/profile/${player_id}',
-      data: json,
+    Response response = await api.get('/player/auth');
+
+    if (response.data == null) {
+      throw Exception('No response from server');
+    }
+
+    return ApiResponse.parsePayload<PlayerModel>(
+      response.data,
+      (data) => PlayerModel.fromMap(data),
     );
-    final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
-    return apiResponse;
   }
 }

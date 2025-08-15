@@ -5,15 +5,15 @@ InputDecorationTheme appInputDecorationThemeFrom(AppThemeColors colors) {
   return InputDecorationTheme(
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(6),
-      borderSide: BorderSide(color: colors.gray6, width: 0.5),
+      borderSide: BorderSide(color: colors.gray8, width: 0.5),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(6),
-      borderSide: BorderSide(color: colors.gray6, width: 0.5),
+      borderSide: BorderSide(color: colors.gray8, width: 0.5),
     ),
     disabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(6),
-      borderSide: BorderSide(color: colors.gray4, width: 0.5),
+      borderSide: BorderSide(color: colors.gray5, width: 0.5),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(6),

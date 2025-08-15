@@ -32,4 +32,15 @@ class ApiResponse<T> {
       payload: json['payload'],
     );
   }
+
+  static T parsePayload<T>(
+    Map<String, dynamic> json,
+    T Function(dynamic json) fromJsonT,
+  ) {
+    return fromJsonT(json['payload']);
+  }
+
+  static String toRedirect(Map<String, dynamic> json) {
+    return json['redirect'];
+  }
 }

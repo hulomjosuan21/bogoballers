@@ -1,10 +1,11 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/widget/auth_navigator.dart';
-import 'package:bogoballers/screens/auth/login_screen.dart';
-import 'package:bogoballers/screens/auth/register_screen.dart';
+import 'package:bogoballers/screens/player/player_register_screen.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_register_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:getwidget/components/button/gf_button.dart';
+import 'package:getwidget/size/gf_size.dart';
 
 class ClientAuthScreen extends StatelessWidget {
   const ClientAuthScreen({super.key});
@@ -13,100 +14,71 @@ class ClientAuthScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
 
-    Widget buildRoleCard({
+    Widget buildOption({
       required String text,
-      required IconData icon,
+      required String imagePath,
       required VoidCallback onTap,
     }) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 200,
-          decoration: BoxDecoration(
-            color: colors.color1,
-            borderRadius: BorderRadius.circular(Sizes.radiusMd),
-            border: Border.all(
-              color: colors.color6,
-              width: Sizes.borderWidthSm,
+      return Expanded(
+        child: Stack(
+          children: [
+            // Background image
+            Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(imagePath),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-          ),
-          padding: EdgeInsets.all(Sizes.spaceMd),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                size: Sizes.fontSizeLg * 2,
+            // Dark overlay
+            Positioned(
+              bottom: 10,
+              left: 20,
+              right: 20,
+              child: GFButton(
+                onPressed: onTap,
+                text: text,
+                fullWidthButton: true,
+                size: GFSize.SMALL,
                 color: colors.color9,
               ),
-              SizedBox(height: Sizes.spaceSm),
-              Text(text),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
 
     return Scaffold(
+      appBar: AppBar(centerTitle: true, title: Text("Select Role")),
       body: Column(
         children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  "Are you here to play or lead a team?",
-                  style: TextStyle(
-                    fontSize: Sizes.fontSizeMd,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: Sizes.spaceLg),
-                buildRoleCard(
-                  text: "I’m a Player",
-                  icon: Iconsax.dribbble,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return PlayerRegisterScreen();
-                      },
-                    ),
-                  ),
-                ),
-                SizedBox(height: Sizes.spaceMd),
-                buildRoleCard(
-                  text: "I’m a Team Creator",
-                  icon: Iconsax.profile_2user,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return TeamCreatorRegisterScreen();
-                      },
-                    ),
-                  ),
-                ),
-              ],
+          buildOption(
+            text: "I’m a Player",
+            imagePath: "assets/images/player_option_image.png",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PlayerRegisterScreen()),
             ),
           ),
-          Center(
-            child: Container(
-              padding: EdgeInsets.only(
-                left: Sizes.spaceSm,
-                right: Sizes.spaceSm,
-                top: Sizes.spaceSm,
-                bottom: Sizes.spaceLg,
+          buildOption(
+            text: "I’m a Team Manager",
+            imagePath: "assets/images/team_manager_option_image.png",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TeamManagerRegisterScreen(),
               ),
-              child: authNavigator(
-                context,
-                "Already have an account?",
-                " Login",
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                ),
-              ),
+            ),
+          ),
+          // Optional: Login text
+          Padding(
+            padding: EdgeInsets.all(Sizes.spaceSm),
+            child: authNavigator(
+              context,
+              "Already have an account?",
+              " Login",
+              () => Navigator.pushReplacementNamed(context, '/auth/login'),
             ),
           ),
         ],

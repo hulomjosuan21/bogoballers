@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bogoballers/core/constants/file_strings.dart';
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/models/user_model.dart';
-import 'package:bogoballers/core/services/auth_service.dart';
+import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/custom_exceptions.dart';
 import 'package:bogoballers/core/validations/auth_validations.dart';
@@ -30,6 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController(text: 'password123');
 
+  Future<void> test() async {
+    await EntityService.fetchEntityRedirect();
+  }
+
   Future<void> _handleLogin() async {
     setState(() => isLoading = true);
     try {
@@ -38,12 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
         passwordController: passwordController,
       );
 
-      final user = UserModel.login(
+      final user = UserLogin(
         email: emailController.text,
-        password_str: passwordController.text,
+        password: passwordController.text,
       );
 
-      final response = await AuthService.login(u: user.toFormDataForLogin());
+      final response = await EntityService.login(u: user.toFormData());
       if (mounted) {
         showAppSnackbar(
           context,
@@ -52,19 +56,15 @@ class _LoginScreenState extends State<LoginScreen> {
           variant: SnackbarVariant.success,
         );
 
-        // final redirect = response.redirect;
-        // if (redirect == null) {
-        //   throw AppException("Something went wrong!");
-        // }
+        final redirect = response.redirect;
+        if (redirect == null) {
+          throw AppException("Something went wrong!");
+        }
 
-        // await Navigator.pushReplacementNamed(context, redirect);
+        await Navigator.pushReplacementNamed(context, redirect);
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       if (context.mounted) {
-        // Log the full error and stack trace for debugging
-        debugPrint('Login error: $e');
-        debugPrint('Stack trace: $stackTrace');
-
         handleErrorCallBack(e, (message) {
           showAppSnackbar(
             context,
@@ -173,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       GestureDetector(
-                                        onTap: () {}, // forgot password
+                                        onTap: test, // forgot password
                                         child: Text(
                                           "Forgot password?",
                                           style: TextStyle(

@@ -1,25 +1,17 @@
 // ignore_for_file: non_constant_identifier_names
-import 'package:bogoballers/core/enums/user_enum.dart';
+
 import 'package:dio/dio.dart';
 
-class UserFromToken {
+abstract class User {
   final String user_id;
+  final String email;
+  final String contact_number;
   final String account_type;
+  final bool is_verified;
+  final String created_at;
+  final String updated_at;
 
-  UserFromToken({required this.user_id, required this.account_type});
-}
-
-class UserModel {
-  late String user_id;
-  String email;
-  late String contact_number;
-  String? password_str;
-  late AccountTypeEnum account_type;
-  bool? is_verified;
-  late DateTime created_at;
-  late DateTime updated_at;
-
-  UserModel({
+  User({
     required this.user_id,
     required this.email,
     required this.contact_number,
@@ -28,48 +20,51 @@ class UserModel {
     required this.created_at,
     required this.updated_at,
   });
+}
 
-  UserModel.create({
-    required this.email,
-    required this.contact_number,
-    required this.password_str,
+class UserLogin {
+  final String email;
+  final String password;
+
+  UserLogin({required this.email, required this.password});
+
+  FormData toFormData() {
+    return FormData.fromMap({'email': email, 'password': password});
+  }
+}
+
+class UserModel extends User {
+  UserModel({
+    required super.user_id,
+    required super.email,
+    required super.contact_number,
+    required super.account_type,
+    required super.is_verified,
+    required super.created_at,
+    required super.updated_at,
   });
 
-  UserModel.login({required this.email, required this.password_str});
-
-  FormData toFormDataForLogin() {
-    final formMap = {'email': email, 'password_str': password_str};
-    return FormData.fromMap(formMap);
-  }
-
-  Map<String, dynamic> toJsonForCreation() {
-    return {
-      'email': email,
-      'password_str': password_str,
-      'contact_number': contact_number,
-    };
-  }
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
+  factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      user_id: json['user_id'],
-      email: json['email'],
-      contact_number: json['contact_number'],
-      account_type: AccountTypeEnum.fromValue(json['account_type'])!,
-      is_verified: json['is_verified'],
-      created_at: DateTime.parse(json['created_at']),
-      updated_at: DateTime.parse(json['updated_at']),
+      user_id: map['user_id'] as String,
+      email: map['email'] as String,
+      contact_number: map['contact_number'] as String,
+      account_type: map['account_type'] as String,
+      is_verified: map['is_verified'] as bool,
+      created_at: map['created_at'] as String,
+      updated_at: map['updated_at'] as String,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'user_id': user_id,
       'email': email,
       'contact_number': contact_number,
-      'account_type': account_type.value,
-      'created_at': created_at.toIso8601String(),
-      'updated_at': updated_at.toIso8601String(),
+      'account_type': account_type,
+      'is_verified': is_verified,
+      'created_at': created_at,
+      'updated_at': updated_at,
     };
   }
 }
