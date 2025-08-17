@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:bogoballers/core/services/secure_storage_service.dart';
+import 'package:bogoballers/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -77,35 +83,84 @@ class NotificationService {
     isFlutterLocalNotificationsInitialized = true;
   }
 
+  // Future<void> showNotification(RemoteMessage message) async {
+  //   RemoteNotification? notification = message.notification;
+
+  //   AndroidNotification? android = message.notification?.android;
+
+  //   if (notification != null && android != null) {
+  //     await _localNotifications.show(
+  //       notification.hashCode,
+  //       notification.title,
+  //       notification.body,
+  //       NotificationDetails(
+  //         android: AndroidNotificationDetails(
+  //           'high_importance_channel',
+  //           'High Importance Notifications',
+  //           channelDescription:
+  //               'This channel is used for important notifications.',
+  //           importance: Importance.high,
+  //           priority: Priority.high,
+  //           icon: '@mipmap/ic_launcher',
+  //         ),
+  //       ),
+  //       payload: message.data.toString(),
+  //     );
+  //   }
+  // }
+
   Future<void> showNotification(RemoteMessage message) async {
-    RemoteNotification? notification = message.notification;
+    final notification = message.notification;
+    if (notification == null) return;
 
-    AndroidNotification? android = message.notification?.android;
+    String? imageUrl = message.data['image'];
 
-    if (notification != null && android != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-        ),
-        payload: message.data.toString(),
+    BigPictureStyleInformation? style;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      final filePath = await _downloadAndSaveFile(imageUrl, 'sender_image');
+      style = BigPictureStyleInformation(
+        FilePathAndroidBitmap(filePath),
+        contentTitle: notification.title,
+        summaryText: notification.body,
       );
     }
+
+    await _localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          channelDescription:
+              'This channel is used for important notifications.',
+          importance: Importance.high,
+          priority: Priority.high,
+          styleInformation: style,
+          icon: '@mipmap/ic_launcher', // small status bar icon
+        ),
+      ),
+      payload: message.data.toString(),
+    );
+  }
+
+  Future<String> _downloadAndSaveFile(String url, String fileName) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$fileName');
+    final response = await http.get(Uri.parse(url));
+    await file.writeAsBytes(response.bodyBytes);
+    return file.path;
   }
 
   Future<void> _setupMessagingHandlers() async {
     FirebaseMessaging.onMessage.listen((message) {
       showNotification(message);
+
+      final deepLink = message.data['link'];
+      if (deepLink != null && deepLink.isNotEmpty) {
+        Navigator.of(navigatorKey.currentContext!).pushNamed(deepLink);
+      }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen(_handleBackgroundMessage);
@@ -117,6 +172,13 @@ class NotificationService {
   }
 
   void _handleBackgroundMessage(RemoteMessage message) {
-    if (message.data['type'] == 'chat') {}
+    final deepLink = message.data['link'];
+    if (deepLink != null && deepLink.isNotEmpty) {
+      Navigator.of(navigatorKey.currentContext!).pushNamed(deepLink);
+    }
+
+    if (message.data['type'] == 'chat') {
+      // your chat-specific logic here
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:bogoballers/core/app_routes.dart';
 import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/theme/theme.dart';
+import 'package:bogoballers/main.dart';
 import 'package:bogoballers/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
@@ -52,6 +53,7 @@ class _AppState extends State<App> {
       themeMode: ThemeMode.system,
       routes: appRoutes,
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       home: FutureBuilder<String?>(
         future: _fetchHomeType(),
         builder: (context, snapshot) {

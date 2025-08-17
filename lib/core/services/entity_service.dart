@@ -83,3 +83,23 @@ getEntityCredentialsFromStorage() async {
 
   return (userId: userId, entityId: entityId);
 }
+
+Future<({String userId, String entityId})?>
+getEntityCredentialsFromStorageOrNull() async {
+  final token = await SecureStorageService.instance.read("ACCESS_TOKEN");
+  if (token == null || token.isEmpty) return null;
+
+  try {
+    if (JwtDecoder.isExpired(token)) return null;
+
+    final decoded = JwtDecoder.decode(token);
+    final userId = decoded["sub"]?.toString();
+    final entityId = decoded["entity_id"]?.toString();
+
+    if (userId == null || entityId == null) return null;
+
+    return (userId: userId, entityId: entityId);
+  } catch (_) {
+    return null;
+  }
+}
