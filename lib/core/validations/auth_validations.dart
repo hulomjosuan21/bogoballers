@@ -5,37 +5,6 @@ import 'package:bogoballers/core/validations/validators.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-void validateOrganizationFields({
-  required TextEditingController orgNameController,
-  required String? selectedOrgType,
-  required TextEditingController emailController,
-  required TextEditingController passwordController,
-  required TextEditingController addressController,
-  required String? fullPhoneNumber,
-}) {
-  if (orgNameController.text.trim().isEmpty) {
-    throw ValidationException("Organization name cannot be empty");
-  }
-  if (selectedOrgType == null || selectedOrgType.trim().isEmpty) {
-    throw ValidationException("Organization type must be selected");
-  }
-  if (addressController.text.trim().isEmpty) {
-    throw ValidationException("Address cannot be empty");
-  }
-  if (emailController.text.trim().isEmpty) {
-    throw ValidationException("Email cannot be empty");
-  }
-  if (passwordController.text.trim().isEmpty) {
-    throw ValidationException("Password cannot be empty");
-  }
-  if (fullPhoneNumber == null || fullPhoneNumber.trim().isEmpty) {
-    throw ValidationException("Phone number cannot be empty");
-  }
-  if (!isValidateContactNumber(fullPhoneNumber)) {
-    throw ValidationException("Invalid Phone number");
-  }
-}
-
 void validatePlayerFields({
   required TextEditingController fullNameController,
   required ValueNotifier<String?> selectedGender,

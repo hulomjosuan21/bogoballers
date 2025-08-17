@@ -1,3 +1,4 @@
+import 'package:bogoballers/core/services/secure_storage_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -21,6 +22,11 @@ class NotificationService {
     await _requestPermission();
 
     await _setupMessagingHandlers();
+
+    await SecureStorageService.instance.syncFcmToken();
+    FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+      await SecureStorageService.instance.syncFcmToken(token);
+    });
   }
 
   Future<void> _requestPermission() async {

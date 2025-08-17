@@ -7,7 +7,9 @@ class BackgroundSyncService {
       BackgroundSyncService._privateConstructor();
 
   Future<void> start() async {
-    try {} catch (e, st) {
+    try {
+      debugPrint("Background sync started...");
+    } catch (e, st) {
       debugPrint("⚠️ Background sync failed: $e\n$st");
     }
   }

@@ -168,9 +168,7 @@ class _TeamManagerRegisterScreenState extends State<TeamManagerRegisterScreen> {
         display_name: displayNameController.text,
       );
 
-      final service = TeamManagerServices();
-
-      final response = await service.createNewTeamManager(user);
+      final response = await TeamManagerServices.createNewTeamManager(user);
 
       if (mounted) {
         showAppSnackbar(

@@ -11,7 +11,6 @@ class ApiResponse<T> {
     this.payload,
   });
 
-  /// Factory constructor to create ApiResponse from JSON.
   factory ApiResponse.fromJson(
     Map<String, dynamic> json, {
     T Function(Map<String, dynamic> json)? fromJsonT,
@@ -22,13 +21,12 @@ class ApiResponse<T> {
       redirect: json['redirect'],
       payload: json['payload'] != null
           ? fromJsonT != null
-              ? fromJsonT(json['payload'])
-              : json['payload'] as T
+                ? fromJsonT(json['payload'])
+                : json['payload'] as T
           : null,
     );
   }
 
-  /// Factory constructor to create ApiResponse without payload
   factory ApiResponse.fromJsonNoPayload(Map<String, dynamic> json) {
     return ApiResponse<T>(
       status: json['status'] ?? false,
@@ -38,7 +36,6 @@ class ApiResponse<T> {
     );
   }
 
-  /// Converts the ApiResponse to JSON (excluding payload)
   Map<String, dynamic> toJson() {
     return {
       'status': status,

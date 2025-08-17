@@ -2,6 +2,7 @@ import 'package:bogoballers/core/helpers/api_reponse.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:bogoballers/core/services/secure_storage_service.dart';
 import 'package:dio/dio.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class EntityService {
   static Future<String?> fetchEntityRedirect() async {
@@ -42,13 +43,43 @@ class EntityService {
     final response = await api.post('/entity/login', data: u);
 
     final cookie = response.headers['set-cookie']?.first;
+    if (cookie != null) {
+      setQuartAuthCookie(cookie);
+    }
 
-    setQuartAuthCookie(cookie);
-
-    final apiResponse = ApiResponse<Map<String, dynamic>>.fromJsonNoPayload(
+    final apiResponse = ApiResponse<String>.fromJson(
       response.data,
+      (data) => data as String,
     );
+
+    final token = apiResponse.payload;
+
+    if (token != null && token.isNotEmpty) {
+      await SecureStorageService.instance.saveAccessToken(token);
+    }
 
     return apiResponse;
   }
+}
+
+Future<({String userId, String entityId})>
+getEntityCredentialsFromStorage() async {
+  final token = await SecureStorageService.instance.read("ACCESS_TOKEN");
+  if (token == null || token.isEmpty) {
+    throw Exception("No access token found");
+  }
+  if (JwtDecoder.isExpired(token)) {
+    throw Exception("Access token expired");
+  }
+
+  final decoded = JwtDecoder.decode(token);
+
+  final userId = decoded["sub"]?.toString();
+  final entityId = decoded["entity_id"]?.toString();
+
+  if (userId == null || entityId == null) {
+    throw Exception("Invalid token payload: missing sub or entity_id");
+  }
+
+  return (userId: userId, entityId: entityId);
 }

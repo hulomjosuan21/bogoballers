@@ -4,7 +4,9 @@ import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
 class TeamManagerServices {
-  Future<ApiResponse> createNewTeamManager(CreateTeamManager user) async {
+  static Future<ApiResponse> createNewTeamManager(
+    CreateTeamManager user,
+  ) async {
     final api = DioClient().client;
 
     Response response = await api.post(
@@ -15,37 +17,11 @@ class TeamManagerServices {
     return apiResponse;
   }
 
-  // Future<ApiResponse<TeamModel>> createNewTeam(TeamModel team) async {
-  //   final api = DioClient().client;
-  //   Response response = await api.post(
-  //     '/team/new',
-  //     data: team.toFormDataForCreation(),
-  //   );
-  //   final apiResponse = ApiResponse<TeamModel>.fromJson(
-  //     response.data,
-  //     (data) => TeamModel.fromJson(data),
-  //   );
-  //   return apiResponse;
-  // }
+  static Future<TeamManagerModel> fetchTeamManager() async {
+    final api = DioClient().client;
 
-  // Future<List<PlayerTeamWrapper>?> fetchPlayers(
-  //   String teamId, {
-  //   String? status,
-  // }) async {
-  //   final api = DioClient().client;
+    Response response = await api.get('/team-manager/auth');
 
-  //   final response = await api.get(
-  //     '/team/players/$teamId',
-  //     queryParameters: {if (status != null) 'status': status},
-  //   );
-
-  //   final apiResponse = ApiResponse<List<PlayerTeamWrapper>?>.fromJson(
-  //     response.data,
-  //     (data) => (data as List)
-  //         .map((item) => PlayerTeamWrapper.fromJson(item))
-  //         .toList(),
-  //   );
-
-  //   return apiResponse.payload;
-  // }
+    return TeamManagerModel.fromMap(response.data as Map<String, dynamic>);
+  }
 }

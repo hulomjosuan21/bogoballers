@@ -2,10 +2,10 @@
 
 import 'package:bogoballers/core/models/user_model.dart';
 
-class TeamManager extends User {
+class TeamManagerModel extends User {
   final String display_name;
 
-  TeamManager({
+  TeamManagerModel({
     required super.user_id,
     required super.email,
     required super.contact_number,
@@ -16,16 +16,16 @@ class TeamManager extends User {
     required this.display_name,
   });
 
-  factory TeamManager.fromMap(Map<String, dynamic> map) {
-    return TeamManager(
-      user_id: map['user_id'],
-      email: map['email'],
-      contact_number: map['contact_number'],
-      account_type: map['account_type'],
-      is_verified: map['is_verified'],
-      created_at: map['created_at'],
-      updated_at: map['updated_at'],
-      display_name: map['display_name'],
+  factory TeamManagerModel.fromMap(Map<String, dynamic> map) {
+    return TeamManagerModel(
+      user_id: map['user_id'] as String,
+      email: map['email'] as String,
+      contact_number: map['contact_number'] as String,
+      account_type: map['account_type'] as String,
+      is_verified: map['is_verified'] as bool,
+      created_at: map['created_at'] as String,
+      updated_at: map['updated_at'] as String,
+      display_name: map['display_name'] as String,
     );
   }
 

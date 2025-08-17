@@ -2,6 +2,7 @@ import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/widget/custom_icon.dart';
 import 'package:bogoballers/screens/player/player_home_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_home_screen.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_team_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
@@ -41,9 +42,9 @@ class PlayerBottomNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const PlayerHomeScreen(),
-    Center(child: Text("Team"),),
-    Center(child: Text("Settings"),),
-    Center(child: Text("Profile"),),
+    Center(child: Text("Team")),
+    Center(child: Text("Settings")),
+    Center(child: Text("Profile")),
   ];
 }
 
@@ -52,7 +53,7 @@ class TeamManagerNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const TeamManagerHomeScreen(),
-    Center(child: Text("Team"),)
+    const TeamsScreen(),
   ];
 }
 
@@ -152,7 +153,7 @@ Obx teamManagerBottomNavigation({
           label: "Team",
           index: 1,
           selectedIndex: controller.selectedIndex,
-        )
+        ),
       ],
     ),
   );

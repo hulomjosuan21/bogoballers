@@ -197,4 +197,60 @@ class PlayerTeamModel extends Player {
     required super.updated_at,
     required super.user,
   });
+
+  factory PlayerTeamModel.fromMap(Map<String, dynamic> json) {
+    return PlayerTeamModel(
+      player_team_id: json['player_team_id'],
+      team_id: json['team_id'],
+      is_ban: json['is_ban'] ?? false,
+      is_accepted: json['is_accepted'] ?? false,
+      player_id: json['player_id'],
+      user_id: json['user_id'],
+      full_name: json['full_name'],
+      gender: json['gender'],
+      birth_date: json['birth_date'],
+      player_address: json['player_address'],
+      jersey_name: json['jersey_name'],
+      jersey_number: (json['jersey_number'] as num).toDouble(),
+      position: List<String>.from(json['position'] ?? []),
+      height_in: (json['height_in'] as num).toDouble(),
+      weight_kg: (json['weight_kg'] as num).toDouble(),
+      games_played: json['games_played'] ?? 0,
+      points_scored: json['points_scored'] ?? 0,
+      assists: json['assists'] ?? 0,
+      rebounds: json['rebounds'] ?? 0,
+      profile_image_url: json['profile_image_url'],
+      created_at: json['created_at'],
+      updated_at: json['updated_at'],
+      user: UserModel.fromMap(json['user']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'player_team_id': player_team_id,
+      'team_id': team_id,
+      'is_ban': is_ban,
+      'is_accepted': is_accepted,
+      'player_id': player_id,
+      'user_id': user_id,
+      'full_name': full_name,
+      'gender': gender,
+      'birth_date': birth_date,
+      'player_address': player_address,
+      'jersey_name': jersey_name,
+      'jersey_number': jersey_number,
+      'position': position,
+      'height_in': height_in,
+      'weight_kg': weight_kg,
+      'games_played': games_played,
+      'points_scored': points_scored,
+      'assists': assists,
+      'rebounds': rebounds,
+      'profile_image_url': profile_image_url,
+      'created_at': created_at,
+      'updated_at': updated_at,
+      'user': user.toMap(),
+    };
+  }
 }

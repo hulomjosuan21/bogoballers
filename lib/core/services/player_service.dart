@@ -19,9 +19,6 @@ class PlayerService {
       throw Exception('No response from server');
     }
 
-    return ApiResponse.parsePayload<PlayerModel>(
-      response.data,
-      (data) => PlayerModel.fromMap(data),
-    );
+    return PlayerModel.fromMap(response.data as Map<String, dynamic>);
   }
 }

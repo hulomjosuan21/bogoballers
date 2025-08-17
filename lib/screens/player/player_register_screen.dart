@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/data/static_data.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/services/player_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
@@ -74,19 +73,14 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
   @override
   void initState() {
     super.initState();
-    _loadBarangays();
+    _loadStaticData();
   }
 
-  Future<void> _loadBarangays() async {
-    final jsonString = await rootBundle.loadString(
-      'assets/json/barangays.json',
-    );
-    final List<dynamic> data = json.decode(jsonString);
+  Future<void> _loadStaticData() async {
+    final staticData = await loadStaticData();
     setState(() {
-      barangays = List<String>.from(data);
-      if (barangays.isNotEmpty) {
-        selectedBarangay = barangays[0];
-      }
+      barangays = staticData.barangays;
+      selectedBarangay = staticData.barangays[0];
     });
   }
 

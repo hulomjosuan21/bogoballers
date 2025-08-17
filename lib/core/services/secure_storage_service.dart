@@ -1,6 +1,8 @@
+import 'package:bogoballers/core/network/dio_client.dart';
+import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 
 class SecureStorageService {
   SecureStorageService._internal();
@@ -9,7 +11,7 @@ class SecureStorageService {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  static const String _accessTokenKey = 'access_token';
+  static const String _accessTokenKey = 'ACCESS_TOKEN';
 
   Future<void> write({required String key, required String value}) async {
     await _storage.write(key: key, value: value);
@@ -17,6 +19,11 @@ class SecureStorageService {
 
   Future<String?> read(String key) async {
     return await _storage.read(key: key);
+  }
+
+  Future<void> deleteCredentials() async {
+    await delete('QUART_AUTH');
+    await delete(_accessTokenKey);
   }
 
   Future<void> delete(String key) async {
@@ -32,15 +39,6 @@ class SecureStorageService {
   }
 
   Future<void> saveAccessToken(String token) async {
-    if (token.isEmpty || JwtDecoder.isExpired(token)) {
-      throw Exception('Invalid or expired access token');
-    }
-
-    final decoded = JwtDecoder.decode(token);
-    if (!decoded.containsKey('sub') || !decoded.containsKey('account_type')) {
-      throw Exception('Access token missing required claims: sub/account_type');
-    }
-
     await write(key: _accessTokenKey, value: token);
   }
 }
@@ -48,30 +46,33 @@ class SecureStorageService {
 extension FCMTokenHandler on SecureStorageService {
   static const String _fcmTokenKey = 'fcm_token';
 
-  Future<void> generateAndSaveFCMToken({required String userId}) async {
-    final existingToken = await _storage.read(key: '$_fcmTokenKey:$userId');
-    if (existingToken != null) return;
+  Future<void> syncFcmToken([String? refreshedToken]) async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final token = refreshedToken ?? await messaging.getToken();
+      if (token == null) return;
 
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    if (fcmToken == null) throw Exception('Failed to retrieve FCM token');
+      final creds = await getEntityCredentialsFromStorage();
+      final userId = creds.userId;
+      final entityId = creds.entityId;
 
-    await _storage.write(key: '$_fcmTokenKey:$userId', value: fcmToken);
+      final namespacedKey = '$_fcmTokenKey:$userId';
 
-    await _sendTokenToBackend(userId: userId, token: fcmToken);
-  }
+      final storedToken = await read(namespacedKey);
 
-  Future<void> _sendTokenToBackend({
-    required String userId,
-    required String token,
-  }) async {
-    // final dio = Dio(BaseOptions(
-    //   baseUrl: 'https://your-backend-api.com', // Replace with actual backend
-    //   connectTimeout: const Duration(seconds: 5),
-    // ));
+      if (storedToken == token) {
+        return;
+      }
 
-    // await dio.post('/fcm/save', data: {
-    //   'user_id': userId,
-    //   'fcm_token': token,
-    // });
+      await write(key: namespacedKey, value: token);
+
+      final api = DioClient().client;
+      await api.post(
+        '/entity/update-fcm',
+        data: {'fcm_token': token, 'user_id': userId, 'entity_id': entityId},
+      );
+    } catch (e) {
+      debugPrint("❌ Failed to sync FCM token: $e");
+    }
   }
 }

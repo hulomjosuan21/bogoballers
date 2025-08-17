@@ -1,5 +1,6 @@
 import 'package:bogoballers/core/constants/regex.dart';
 import 'package:bogoballers/core/utils/custom_exceptions.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 bool isValidateContactNumber(String? value) {
@@ -86,5 +87,44 @@ void validateCreateTeamFields({
 
   if (!hasAcceptedTerms) {
     throw ValidationException("You must accept the terms and conditions");
+  }
+}
+
+void validateTeamFields({
+  required TextEditingController teamNameController,
+  required String? selectedBarangay,
+  required String? phoneNumber,
+  required TextEditingController teamMotoController,
+  required MultipartFile? teamLogo,
+  required TextEditingController teamCoachController,
+  required TextEditingController teamAssistantCoachController,
+  required String? selectedLeagueCategory,
+}) {
+  if (teamNameController.text.trim().isEmpty) {
+    throw ValidationException("Team name cannot be empty");
+  }
+  if (selectedBarangay == null || selectedBarangay.trim().isEmpty) {
+    throw ValidationException("Team address (barangay) must be selected");
+  }
+  if (phoneNumber == null || phoneNumber.trim().isEmpty) {
+    throw ValidationException("Contact number cannot be empty");
+  }
+  if (!isValidateContactNumber(phoneNumber)) {
+    throw ValidationException("Invalid contact number");
+  }
+  if (teamMotoController.text.trim().isEmpty) {
+    throw ValidationException("Team motto cannot be empty");
+  }
+  if (teamLogo == null) {
+    throw ValidationException("Team logo must be provided");
+  }
+  if (teamCoachController.text.trim().isEmpty) {
+    throw ValidationException("Coach name cannot be empty");
+  }
+  if (teamAssistantCoachController.text.trim().isEmpty) {
+    throw ValidationException("Assistant coach name cannot be empty");
+  }
+  if (selectedLeagueCategory == null || selectedLeagueCategory.trim().isEmpty) {
+    throw ValidationException("Team category must be selected");
   }
 }
