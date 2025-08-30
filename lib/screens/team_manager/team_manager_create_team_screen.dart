@@ -26,7 +26,6 @@ class CreateTeamSreen extends ConsumerStatefulWidget {
 
 class _CreateTeamSreenState extends ConsumerState<CreateTeamSreen> {
   List<String> barangays = [];
-  List<String> leagueCategories = [];
   bool hasAcceptedTerms = false;
   bool isProcessing = false;
 
@@ -49,7 +48,6 @@ class _CreateTeamSreenState extends ConsumerState<CreateTeamSreen> {
   Future<void> _loadStaticData() async {
     final staticData = await loadStaticData();
     setState(() {
-      leagueCategories = staticData.leagueCategories;
       selectedLeagueCategories = staticData.leagueCategories[0];
       barangays = staticData.barangays;
       selectedBarangay = staticData.barangays[0];
@@ -125,27 +123,7 @@ class _CreateTeamSreenState extends ConsumerState<CreateTeamSreen> {
                   labelText: "Team assistant coach",
                 ),
               ),
-              const SizedBox(height: Sizes.spaceMd),
-              DropdownSearch<String>(
-                items: (filter, infiniteScrollProps) => leagueCategories,
-                selectedItem: selectedLeagueCategories ?? "No Data",
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  fit: FlexFit.loose,
-                ),
-                decoratorProps: DropDownDecoratorProps(
-                  decoration: InputDecoration(
-                    labelText: 'Select team category',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    selectedLeagueCategories = value;
-                  });
-                },
-              ),
-              const SizedBox(height: Sizes.spaceMd),
+                const SizedBox(height: Sizes.spaceMd),
               termAndCondition(
                 context: context,
                 hasAcceptedTerms: hasAcceptedTerms,
@@ -197,7 +175,6 @@ class _CreateTeamSreenState extends ConsumerState<CreateTeamSreen> {
         team_logo: multipartFile!,
         coach_name: teamCoachController.text,
         assistant_coach_name: teamAssistantCoachController.text,
-        team_category: selectedLeagueCategories!,
       );
 
       final response = await TeamService.createTeam(newTeam.toFormData());

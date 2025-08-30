@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/display_name_generator.dart';
 import 'package:bogoballers/core/models/team_manager.dart';
@@ -9,6 +11,7 @@ import 'package:bogoballers/core/validations/auth_validations.dart';
 import 'package:bogoballers/core/widget/password_field.dart';
 import 'package:bogoballers/core/widget/phone_number_input.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/shape/gf_button_shape.dart';
@@ -161,11 +164,16 @@ class _TeamManagerRegisterScreenState extends State<TeamManagerRegisterScreen> {
         confirmPassController: confirmPassController,
       );
 
+      final messaging = FirebaseMessaging.instance;
+
+      String? fcm_token = await messaging.getToken();
+
       final user = CreateTeamManager(
         email: emailController.text,
         contact_number: phoneNumber!,
         password_str: passwordController.text,
         display_name: displayNameController.text,
+        fcm_token: fcm_token,
       );
 
       final response = await TeamManagerServices.createNewTeamManager(user);

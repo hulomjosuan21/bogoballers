@@ -22,79 +22,77 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
   Widget build(BuildContext context) {
     final teamManagerAsync = ref.watch(teamManagerProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home"),
-        centerTitle: true,
-        actions: [
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem(onTap: testWriteID, child: const Text('Test')),
-              PopupMenuItem(
-                onTap: () => logout(context),
-                child: const Text('Logout'),
+    return teamManagerAsync.when(
+      data: (teamManager) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(teamManager.display_name),
+            actions: [
+              PopupMenuButton(
+                icon: const Icon(Icons.more_vert),
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem(onTap: testWriteID, child: const Text('Test')),
+                  PopupMenuItem(
+                    onTap: () => logout(context),
+                    child: const Text('Logout'),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: ElevatedButton(
-              onPressed: () async {
-                try {
-                  final info = await getEntityCredentialsFromStorage();
-                  setState(() {
-                    _userId = info.userId;
-                    _entityId = info.entityId;
-                  });
-                } catch (e) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text("Error: $e")));
-                }
-              },
-              child: const Text("Show IDs"),
-            ),
-          ),
-
-          // 🔹 Display the IDs if available
-          if (_userId != null && _entityId != null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                "User ID: $_userId\nEntity ID: $_entityId",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      final info = await getEntityCredentialsFromStorage();
+                      setState(() {
+                        _userId = info.userId;
+                        _entityId = info.entityId;
+                      });
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                    }
+                  },
+                  child: const Text("Show IDs"),
                 ),
               ),
-            ),
 
-          // 🔹 Keep your JSON output below
-          Expanded(
-            child: teamManagerAsync.when(
-              data: (teamManager) {
-                const encoder = JsonEncoder.withIndent("  ");
-                final jsonString = encoder.convert(teamManager.toMap());
-
-                return SingleChildScrollView(
+              if (_userId != null && _entityId != null)
+                Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    jsonString,
+                    "User ID: $_userId\nEntity ID: $_entityId",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    const JsonEncoder.withIndent(
+                      "  ",
+                    ).convert(teamManager.toMap()),
                     style: const TextStyle(fontFamily: 'monospace'),
                   ),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text("Error: $err")),
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text("Error: $err"))),
     );
   }
 }

@@ -1,5 +1,4 @@
 // ignore_for_file: non_constant_identifier_names
-
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:dio/dio.dart';
 
@@ -9,7 +8,7 @@ abstract class Team {
   final String team_name;
   final String team_address;
   final String contact_number;
-  final String team_motto;
+  final String? team_motto;
   final String team_logo_url;
   final int championships_won;
   final String coach_name;
@@ -19,7 +18,7 @@ abstract class Team {
   final int total_draws;
   final int total_points;
   final bool is_recruiting;
-  final String team_category;
+  final String? team_category;
 
   Team({
     required this.team_id,
@@ -42,10 +41,11 @@ abstract class Team {
 }
 
 class TeamModel extends Team {
-  final PlayerTeamModel? team_captain;
-
+  final List<PlayerTeamModel> accepted_players;
+  final List<PlayerTeamModel> pending_players;
+  final List<PlayerTeamModel> rejected_players;
+  final List<PlayerTeamModel> invited_players;
   TeamModel({
-    required this.team_captain,
     required super.team_id,
     required super.user_id,
     required super.team_name,
@@ -62,13 +62,14 @@ class TeamModel extends Team {
     required super.total_points,
     required super.is_recruiting,
     required super.team_category,
+    required this.accepted_players,
+    required this.pending_players,
+    required this.rejected_players,
+    required this.invited_players,
   });
 
   factory TeamModel.fromMap(Map<String, dynamic> json) {
     return TeamModel(
-      team_captain: json['team_captain'] != null
-          ? PlayerTeamModel.fromMap(json['team_captain'])
-          : null,
       team_id: json['team_id'],
       user_id: json['user_id'],
       team_name: json['team_name'],
@@ -85,12 +86,31 @@ class TeamModel extends Team {
       total_points: json['total_points'],
       is_recruiting: json['is_recruiting'],
       team_category: json['team_category'],
+      invited_players:
+          (json['invited_players'] as List<dynamic>?)
+              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      pending_players:
+          (json['pending_players'] as List<dynamic>?)
+              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      rejected_players:
+          (json['rejected_players'] as List<dynamic>?)
+              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      accepted_players:
+          (json['accepted_players'] as List<dynamic>?)
+              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'team_captain': team_captain?.toMap(),
       'team_id': team_id,
       'user_id': user_id,
       'team_name': team_name,
@@ -107,6 +127,10 @@ class TeamModel extends Team {
       'total_points': total_points,
       'is_recruiting': is_recruiting,
       'team_category': team_category,
+      'invited_players': invited_players.map((e) => e.toMap()).toList(),
+      'pending_players': pending_players.map((e) => e.toMap()).toList(),
+      'rejected_players': rejected_players.map((e) => e.toMap()).toList(),
+      'accepted_players': accepted_players.map((e) => e.toMap()).toList(),
     };
   }
 }
@@ -119,7 +143,6 @@ class CreateTeam {
   final MultipartFile team_logo;
   final String coach_name;
   final String assistant_coach_name;
-  final String team_category;
 
   CreateTeam({
     required this.team_name,
@@ -129,7 +152,6 @@ class CreateTeam {
     required this.team_logo,
     required this.coach_name,
     required this.assistant_coach_name,
-    required this.team_category,
   });
 
   FormData toFormData() {
@@ -141,7 +163,6 @@ class CreateTeam {
       'team_logo': team_logo,
       'coach_name': coach_name,
       'assistant_coach_name': assistant_coach_name,
-      'team_category': team_category,
     });
   }
 }

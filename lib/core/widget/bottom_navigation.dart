@@ -2,7 +2,7 @@ import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/widget/custom_icon.dart';
 import 'package:bogoballers/screens/player/player_home_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_home_screen.dart';
-import 'package:bogoballers/screens/team_manager/team_manager_team_screen.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
@@ -53,7 +53,7 @@ class TeamManagerNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const TeamManagerHomeScreen(),
-    const TeamsScreen(),
+    const TeamManagerTeamsScreen(),
   ];
 }
 

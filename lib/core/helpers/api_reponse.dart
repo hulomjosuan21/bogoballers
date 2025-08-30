@@ -20,7 +20,6 @@ class ApiResponse<T> {
       message: json['message'],
       redirect: json['redirect'],
       payload: json['payload'] != null ? fromJsonT(json['payload']) : null,
-      // payload: fromJsonT(json['payload']),
     );
   }
 

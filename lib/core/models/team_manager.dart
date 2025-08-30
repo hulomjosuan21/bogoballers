@@ -2,7 +2,7 @@
 
 import 'package:bogoballers/core/models/user_model.dart';
 
-class TeamManagerModel extends User {
+class TeamManagerModel extends UserModel {
   final String display_name;
 
   TeamManagerModel({
@@ -48,20 +48,28 @@ class CreateTeamManager {
   final String password_str;
   final String contact_number;
   final String display_name;
+  final String? fcm_token;
 
   CreateTeamManager({
     required this.display_name,
     required this.email,
     required this.password_str,
     required this.contact_number,
+    required this.fcm_token,
   });
 
   Map<String, String> toFormData() {
-    return {
+    final map = <String, String>{
       'email': email,
       'password_str': password_str,
       'contact_number': contact_number,
       'display_name': display_name,
     };
+
+    if (fcm_token?.isNotEmpty ?? false) {
+      map["fcm_token"] = fcm_token!;
+    }
+
+    return map;
   }
 }

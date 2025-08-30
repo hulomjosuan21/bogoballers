@@ -1,7 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:convert';
-import 'dart:ffi';
 
 import 'package:bogoballers/core/models/user_model.dart';
 import 'package:dio/dio.dart';
@@ -18,17 +17,14 @@ abstract class Player {
   final List<String> position;
   final double height_in;
   final double weight_kg;
-  final int games_played;
-  final int points_scored;
-  final int assists;
-  final int rebounds;
+  final int total_games_played;
+  final int total_points_scored;
+  final int total_assists;
+  final int total_rebounds;
+  final int total_join_league;
   final String profile_image_url;
-  final String created_at;
-  final String updated_at;
-  final UserModel user;
 
   Player({
-    required this.user,
     required this.player_id,
     required this.user_id,
     required this.full_name,
@@ -40,17 +36,19 @@ abstract class Player {
     required this.position,
     required this.height_in,
     required this.weight_kg,
-    required this.games_played,
-    required this.points_scored,
-    required this.assists,
-    required this.rebounds,
+    required this.total_games_played,
+    required this.total_points_scored,
+    required this.total_assists,
+    required this.total_rebounds,
     required this.profile_image_url,
-    required this.created_at,
-    required this.updated_at,
+    required this.total_join_league,
   });
 }
 
 class PlayerModel extends Player {
+  final UserModel user;
+  final String created_at;
+  final String updated_at;
   PlayerModel({
     required super.player_id,
     required super.user_id,
@@ -63,14 +61,15 @@ class PlayerModel extends Player {
     required super.position,
     required super.height_in,
     required super.weight_kg,
-    required super.games_played,
-    required super.points_scored,
-    required super.assists,
-    required super.rebounds,
+    required super.total_games_played,
+    required super.total_points_scored,
+    required super.total_assists,
+    required super.total_rebounds,
     required super.profile_image_url,
-    required super.created_at,
-    required super.updated_at,
-    required super.user,
+    required this.created_at,
+    required this.updated_at,
+    required this.user,
+    required super.total_join_league,
   });
 
   factory PlayerModel.fromMap(Map<String, dynamic> json) {
@@ -86,10 +85,11 @@ class PlayerModel extends Player {
       position: json['position'],
       height_in: json['height_in'],
       weight_kg: json['weight_kg'],
-      games_played: json['games_played'],
-      points_scored: json['points_scored'],
-      assists: json['assists'],
-      rebounds: json['rebounds'],
+      total_games_played: json['total_games_played'],
+      total_points_scored: json['total_points_scored'],
+      total_assists: json['total_assists'],
+      total_rebounds: json['total_rebounds'],
+      total_join_league: json['total_join_league'],
       profile_image_url: json['profile_image_url'],
       created_at: json['created_at'],
       updated_at: json['updated_at'],
@@ -110,10 +110,10 @@ class PlayerModel extends Player {
       'position': position,
       'height_in': height_in,
       'weight_kg': weight_kg,
-      'games_played': games_played,
-      'points_scored': points_scored,
-      'assists': assists,
-      'rebounds': rebounds,
+      'total_games_played': total_games_played,
+      'total_points_scored': total_points_scored,
+      'total_assists': total_assists,
+      'total_rebounds': total_rebounds,
       'profile_image_url': profile_image_url,
       'created_at': created_at,
       'updated_at': updated_at,
@@ -130,6 +130,7 @@ class CreatePlayer {
   final String gender;
   final String birth_date;
   final String player_address;
+  final String? fcm_token;
   final String jersey_name;
   final double jersey_number;
   final List<String> position;
@@ -147,10 +148,11 @@ class CreatePlayer {
     required this.jersey_number,
     required this.position,
     required this.profile_image,
+    required this.fcm_token,
   });
 
   FormData toFormDataForCreation() {
-    return FormData.fromMap({
+    final map = {
       "email": email,
       "password_str": password_str,
       "contact_number": contact_number,
@@ -162,15 +164,22 @@ class CreatePlayer {
       "jersey_number": jersey_number,
       "position": jsonEncode(position),
       "profile_image": profile_image,
-    });
+    };
+
+    if (fcm_token != null && fcm_token!.isNotEmpty) {
+      map["fcm_token"] = fcm_token!;
+    }
+
+    return FormData.fromMap(map);
   }
 }
 
 class PlayerTeamModel extends Player {
   final String player_team_id;
   final String team_id;
-  Bool is_ban;
-  Bool is_accepted;
+  final bool is_ban;
+  final String is_accepted;
+  final UserModelForTeam user;
 
   PlayerTeamModel({
     required this.player_team_id,
@@ -188,22 +197,21 @@ class PlayerTeamModel extends Player {
     required super.position,
     required super.height_in,
     required super.weight_kg,
-    required super.games_played,
-    required super.points_scored,
-    required super.assists,
-    required super.rebounds,
+    required super.total_games_played,
+    required super.total_points_scored,
+    required super.total_assists,
+    required super.total_rebounds,
     required super.profile_image_url,
-    required super.created_at,
-    required super.updated_at,
-    required super.user,
+    required this.user,
+    required super.total_join_league,
   });
 
   factory PlayerTeamModel.fromMap(Map<String, dynamic> json) {
     return PlayerTeamModel(
       player_team_id: json['player_team_id'],
       team_id: json['team_id'],
-      is_ban: json['is_ban'] ?? false,
-      is_accepted: json['is_accepted'] ?? false,
+      is_ban: json['is_ban'],
+      is_accepted: json['is_accepted'],
       player_id: json['player_id'],
       user_id: json['user_id'],
       full_name: json['full_name'],
@@ -215,14 +223,13 @@ class PlayerTeamModel extends Player {
       position: List<String>.from(json['position'] ?? []),
       height_in: (json['height_in'] as num).toDouble(),
       weight_kg: (json['weight_kg'] as num).toDouble(),
-      games_played: json['games_played'] ?? 0,
-      points_scored: json['points_scored'] ?? 0,
-      assists: json['assists'] ?? 0,
-      rebounds: json['rebounds'] ?? 0,
+      total_games_played: json['total_games_played'],
+      total_points_scored: json['total_points_scored'],
+      total_assists: json['total_assists'],
+      total_rebounds: json['total_rebounds'],
+      total_join_league: json['total_join_league'],
       profile_image_url: json['profile_image_url'],
-      created_at: json['created_at'],
-      updated_at: json['updated_at'],
-      user: UserModel.fromMap(json['user']),
+      user: UserModelForTeam.fromMap(json['user']),
     );
   }
 
@@ -243,13 +250,11 @@ class PlayerTeamModel extends Player {
       'position': position,
       'height_in': height_in,
       'weight_kg': weight_kg,
-      'games_played': games_played,
-      'points_scored': points_scored,
-      'assists': assists,
-      'rebounds': rebounds,
+      'total_games_played': total_games_played,
+      'total_points_scored': total_points_scored,
+      'total_assists': total_assists,
+      'total_rebounds': total_rebounds,
       'profile_image_url': profile_image_url,
-      'created_at': created_at,
-      'updated_at': updated_at,
       'user': user.toMap(),
     };
   }

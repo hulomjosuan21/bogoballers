@@ -8,8 +8,6 @@ abstract class User {
   final String contact_number;
   final String account_type;
   final bool is_verified;
-  final String created_at;
-  final String updated_at;
 
   User({
     required this.user_id,
@@ -17,8 +15,6 @@ abstract class User {
     required this.contact_number,
     required this.account_type,
     required this.is_verified,
-    required this.created_at,
-    required this.updated_at,
   });
 }
 
@@ -34,14 +30,17 @@ class UserLogin {
 }
 
 class UserModel extends User {
+  final String created_at;
+  final String updated_at;
+
   UserModel({
     required super.user_id,
     required super.email,
     required super.contact_number,
     required super.account_type,
     required super.is_verified,
-    required super.created_at,
-    required super.updated_at,
+    required this.created_at,
+    required this.updated_at,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -65,6 +64,36 @@ class UserModel extends User {
       'is_verified': is_verified,
       'created_at': created_at,
       'updated_at': updated_at,
+    };
+  }
+}
+
+class UserModelForTeam extends User {
+  UserModelForTeam({
+    required super.user_id,
+    required super.email,
+    required super.contact_number,
+    required super.account_type,
+    required super.is_verified,
+  });
+
+  factory UserModelForTeam.fromMap(Map<String, dynamic> map) {
+    return UserModelForTeam(
+      user_id: map['user_id'] as String,
+      email: map['email'] as String,
+      contact_number: map['contact_number'] as String,
+      account_type: map['account_type'] as String,
+      is_verified: map['is_verified'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': user_id,
+      'email': email,
+      'contact_number': contact_number,
+      'account_type': account_type,
+      'is_verified': is_verified,
     };
   }
 }

@@ -4,6 +4,26 @@ import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
 class PlayerService {
+  static Future<List<PlayerModel>> fetchAllPlayers(String? search) async {
+    final api = DioClient().client;
+
+    Response response = await api.get(
+      '/player/all',
+      queryParameters: {
+        if (search != null && search.isNotEmpty) 'search': search,
+      },
+    );
+
+    final apiResponse = ApiResponse.fromJson(
+      response.data,
+      (data) => (data as List<dynamic>)
+          .map((e) => PlayerModel.fromMap(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+    return apiResponse.payload ?? [];
+  }
+
   static Future<ApiResponse> createNewPlayer(FormData player) async {
     final api = DioClient().client;
     Response response = await api.post('/player/create', data: player);
@@ -19,6 +39,6 @@ class PlayerService {
       throw Exception('No response from server');
     }
 
-    return PlayerModel.fromMap(response.data as Map<String, dynamic>);
+    return PlayerModel.fromMap(response.data);
   }
 }

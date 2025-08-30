@@ -54,6 +54,7 @@ class _AppState extends State<App> {
       routes: appRoutes,
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
+      onGenerateRoute: generateRoute,
       home: FutureBuilder<String?>(
         future: _fetchHomeType(),
         builder: (context, snapshot) {
