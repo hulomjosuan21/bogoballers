@@ -3,9 +3,7 @@ import 'package:bogoballers/screens/auth/login_screen.dart';
 import 'package:bogoballers/screens/payment_cancelled_screen.dart';
 import 'package:bogoballers/screens/payment_success_screen.dart';
 import 'package:bogoballers/screens/player/player_main_screen.dart';
-import 'package:bogoballers/screens/players_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_main_screen.dart';
-import 'package:bogoballers/screens/teams_screen.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -34,17 +32,6 @@ Route<dynamic>? generateRoute(RouteSettings settings) {
   final uri = Uri.parse(settings.name ?? "");
 
   switch (uri.path) {
-    case '/players':
-      final search = uri.queryParameters['search'];
-      return MaterialPageRoute(
-        builder: (context) => PlayersScreen(search: search),
-      );
-
-    case '/teams':
-      final search = uri.queryParameters['search'];
-      return MaterialPageRoute(
-        builder: (context) => TeamsScreen(search: search),
-      );
     default:
       return null;
   }

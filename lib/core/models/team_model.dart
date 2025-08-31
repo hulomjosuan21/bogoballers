@@ -1,5 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 import 'package:bogoballers/core/models/player_model.dart';
+import 'package:bogoballers/core/models/user_model.dart';
 import 'package:dio/dio.dart';
 
 abstract class Team {
@@ -38,6 +39,59 @@ abstract class Team {
     required this.is_recruiting,
     required this.team_category,
   });
+}
+
+class TeamModelForSearchResult extends Team {
+  final UserModel user;
+  final List<PlayerTeamModel> accepted_players;
+
+  TeamModelForSearchResult({
+    required super.team_id,
+    required super.user_id,
+    required super.team_name,
+    required super.team_address,
+    required super.contact_number,
+    required super.team_motto,
+    required super.team_logo_url,
+    required super.championships_won,
+    required super.coach_name,
+    required super.assistant_coach_name,
+    required super.total_wins,
+    required super.total_losses,
+    required super.total_draws,
+    required super.total_points,
+    required super.is_recruiting,
+    required super.team_category,
+    required this.user,
+    required this.accepted_players,
+  });
+
+  factory TeamModelForSearchResult.fromMap(Map<String, dynamic> json) {
+    return TeamModelForSearchResult(
+      team_id: json['team_id'],
+      user_id: json['user_id'],
+      team_name: json['team_name'],
+      team_address: json['team_address'],
+      contact_number: json['contact_number'],
+      team_motto: json['team_motto'],
+      team_logo_url: json['team_logo_url'],
+      championships_won: json['championships_won'],
+      coach_name: json['coach_name'],
+      assistant_coach_name: json['assistant_coach_name'],
+      total_wins: json['total_wins'],
+      total_losses: json['total_losses'],
+      total_draws: json['total_draws'],
+      total_points: json['total_points'],
+      is_recruiting: json['is_recruiting'],
+      team_category: json['team_category'],
+      user: UserModel.fromMap(json['user']),
+      accepted_players:
+          (json['accepted_players'] as List<dynamic>?)
+              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
 }
 
 class TeamModel extends Team {

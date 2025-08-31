@@ -41,33 +41,23 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
           ),
           body: Column(
             children: [
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SearchScreen()),
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.all(Sizes.spaceMd),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.gray2,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      width: Sizes.borderWidthSm,
-                      color: colors.gray6,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: colors.gray11),
-                      SizedBox(width: 8),
-                      Text("Search...", style: TextStyle(color: colors.gray11)),
-                    ],
+              Padding(
+                padding: const EdgeInsets.all(Sizes.spaceMd),
+                child: TextField(
+                  readOnly: true, // makes it non-editable
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SearchScreen()),
+                    );
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Search...",
+                    helperText:
+                        "Find players, teams, leagues or league administrators",
+                    suffixIcon: Icon(Icons.search, color: colors.gray11),
+                    filled: true,
+                    fillColor: colors.gray2,
                   ),
                 ),
               ),

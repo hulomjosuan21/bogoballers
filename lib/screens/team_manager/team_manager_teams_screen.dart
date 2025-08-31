@@ -93,7 +93,6 @@ class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) {
-          print("Error: $err\n$stack"); // log in console
           return Center(child: Text("Error: $err"));
         },
       ),

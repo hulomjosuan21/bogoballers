@@ -1,6 +1,12 @@
+import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/models/league.dart';
+import 'package:bogoballers/core/models/league_admin_model.dart';
+import 'package:bogoballers/core/models/player_model.dart';
+import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/services/search_service.dart';
-import 'package:bogoballers/screens/players_search_screen.dart';
-import 'package:bogoballers/screens/teams_search_screen.dart';
+import 'package:bogoballers/core/utils/error_handler.dart';
+import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:bogoballers/core/widget/search_screem_list_tiles.dart';
 import 'package:flutter/material.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 
@@ -13,66 +19,59 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final SearchService _searchService = SearchService(); // Your API service
+  final SearchService _searchService = SearchService();
+  final FocusNode _searchFocusNode = FocusNode();
   bool _isSearching = false;
+  List<dynamic> _searchResults = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _searchFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   Future<void> _performSearch(String query) async {
     if (query.isEmpty) return;
 
-    setState(() => _isSearching = true);
+    setState(() {
+      _isSearching = true;
+      _searchResults = [];
+    });
 
     try {
-      // Call your unified search endpoint
       final searchResult = await _searchService.searchTeamOrPlayer(query);
 
       if (searchResult['total_results'] == 0) {
         if (mounted) {
-          ScaffoldMessenger.of(
+          showAppSnackbar(
             context,
-          ).showSnackBar(const SnackBar(content: Text("No results found")));
+            message: "no results found",
+            title: "Not Found",
+            variant: SnackbarVariant.info,
+          );
         }
         return;
       }
 
-      // Determine which entity type has more results
-      final playersCount = searchResult['players_count'] as int;
-      final teamsCount = searchResult['teams_count'] as int;
-
-      if (mounted) {
-        if (playersCount > teamsCount) {
-          // More players found - redirect to Players Search Screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PlayersSeachScreen(
-                searchResults: searchResult, // Pass the results if needed
-              ),
-            ),
-          );
-        } else if (teamsCount > playersCount) {
-          // More teams found - redirect to Team Search Screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeamSearchScreen(
-                searchResults: searchResult, // Pass the results if needed
-              ),
-            ),
-          );
-        } else {
-          // Equal results or both zero - show selection dialog
-          _showSearchResultsDialog(
-            query,
-            playersCount,
-            teamsCount,
-            searchResult,
-          );
-        }
-      }
+      setState(() {
+        _searchResults = searchResult['results'];
+      });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Search failed: ${e.toString()}")),
+        showAppSnackbar(
+          context,
+          message: ErrorHandler.getErrorMessage(e),
+          title: "Error",
+          variant: SnackbarVariant.error,
         );
       }
     } finally {
@@ -82,59 +81,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _showSearchResultsDialog(
-    String query,
-    int playersCount,
-    int teamsCount,
-    Map<String, dynamic> searchResult,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Search Results for "$query"'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: Text('Players ($playersCount)'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        PlayersSeachScreen(searchResults: searchResult),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.groups),
-              title: Text('Teams ($teamsCount)'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        TeamSearchScreen(searchResults: searchResult),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
@@ -142,69 +88,82 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       appBar: AppBar(
         title: TextField(
+          focusNode: _searchFocusNode,
           controller: _searchController,
           textInputAction: TextInputAction.search,
-          onSubmitted: (value) async {
-            await _performSearch(value.trim());
-          },
+          onSubmitted: (value) async => await _performSearch(value.trim()),
           decoration: InputDecoration(
-            hintText: "Search players or teams...",
-            hintStyle: TextStyle(color: colors.gray7),
+            hintText: "Search...",
             suffixIcon: _isSearching
                 ? const Padding(
-                    padding: EdgeInsets.all(12.0),
+                    padding: EdgeInsets.all(Sizes.spaceMd),
                     child: SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   )
                 : IconButton(
                     icon: Icon(Icons.search, color: colors.gray11),
-                    onPressed: () async {
-                      await _performSearch(_searchController.text.trim());
-                    },
+                    onPressed: () async =>
+                        await _performSearch(_searchController.text.trim()),
                   ),
           ),
         ),
       ),
       body: Column(
         children: [
-          const SizedBox(height: 20),
-          // Keep your existing body for manual navigation
-          ListTile(
-            leading: Icon(Icons.person, color: colors.color9),
-            title: const Text("Players"),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PlayersSeachScreen(),
-              ),
-            ),
-          ),
-          Divider(color: colors.gray4),
-          ListTile(
-            leading: Icon(Icons.groups, color: colors.color9),
-            title: const Text("Teams"),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TeamSearchScreen()),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Optional: Show recent searches or suggestions
-          if (!_isSearching) ...[
+          SizedBox(height: Sizes.spaceMd),
+
+          if (_searchController.text.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                "Start typing to search across players and teams",
-                style: TextStyle(color: colors.gray7, fontSize: 14),
-                textAlign: TextAlign.center,
+              padding: const EdgeInsets.all(Sizes.spaceMd),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(Sizes.radiusMd),
+                    image: const DecorationImage(
+                      image: NetworkImage(
+                        "https://res.cloudinary.com/dod3lmxm6/image/upload/v1756398128/25443958_7089019_f9pzyh.jpg",
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
               ),
+            )
+          else
+            Expanded(
+              child: _searchResults.isEmpty && !_isSearching
+                  ? const Center(child: Text("No results"))
+                  : ListView.builder(
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final result = _searchResults[index];
+                        final type = result['type'];
+                        final data = result['data'];
+
+                        if (type == 'player') {
+                          final player = PlayerModel.fromMap(data);
+                          return PlayerSearchResultListTile(player: player);
+                        } else if (type == 'team') {
+                          final team = TeamModelForSearchResult.fromMap(data);
+                          return TeamSearchResultListTile(team: team);
+                        } else if (type == 'league_administrator') {
+                          final leagueAdmin = LeagueAdminModel.fromMap(data);
+                          return LeagueAdministratorSearchResultListTile(
+                            leagueAdmin: leagueAdmin,
+                          );
+                        } else if (type == 'league') {
+                          final league = LeagueModel.fromMap(data);
+                          return LeagueSearchResultListTile(league: league);
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
             ),
-          ],
         ],
       ),
     );
