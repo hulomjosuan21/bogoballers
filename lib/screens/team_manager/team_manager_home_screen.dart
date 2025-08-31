@@ -44,7 +44,7 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
               Padding(
                 padding: const EdgeInsets.all(Sizes.spaceMd),
                 child: TextField(
-                  readOnly: true, // makes it non-editable
+                  readOnly: true,
                   onTap: () {
                     Navigator.push(
                       context,

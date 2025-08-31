@@ -62,7 +62,7 @@ class EntityService {
   }
 }
 
-Future<({String userId, String entityId})>
+Future<({String userId, String entityId, String accountType})>
 getEntityCredentialsFromStorage() async {
   final token = await SecureStorageService.instance.read("ACCESS_TOKEN");
   if (token == null || token.isEmpty) {
@@ -76,15 +76,16 @@ getEntityCredentialsFromStorage() async {
 
   final userId = decoded["sub"]?.toString();
   final entityId = decoded["entity_id"]?.toString();
+  final accountType = decoded["account_type"]?.toString();
 
-  if (userId == null || entityId == null) {
-    throw Exception("Invalid token payload: missing sub or entity_id");
+  if (userId == null || entityId == null || accountType == null) {
+    throw Exception("Invalid token payload");
   }
 
-  return (userId: userId, entityId: entityId);
+  return (userId: userId, entityId: entityId, accountType: accountType);
 }
 
-Future<({String userId, String entityId})?>
+Future<({String userId, String entityId, String accountType})?>
 getEntityCredentialsFromStorageOrNull() async {
   final token = await SecureStorageService.instance.read("ACCESS_TOKEN");
   if (token == null || token.isEmpty) return null;
@@ -95,10 +96,11 @@ getEntityCredentialsFromStorageOrNull() async {
     final decoded = JwtDecoder.decode(token);
     final userId = decoded["sub"]?.toString();
     final entityId = decoded["entity_id"]?.toString();
+    final accountType = decoded["account_type"]?.toString();
 
-    if (userId == null || entityId == null) return null;
+    if (userId == null || entityId == null || accountType == null) return null;
 
-    return (userId: userId, entityId: entityId);
+    return (userId: userId, entityId: entityId, accountType: accountType);
   } catch (_) {
     return null;
   }

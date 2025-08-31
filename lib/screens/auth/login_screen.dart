@@ -12,6 +12,7 @@ import 'package:bogoballers/core/widget/password_field.dart';
 import 'package:bogoballers/core/widget/slider_intro_banner.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/screens/auth/select_role_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/shape/gf_button_shape.dart';
@@ -42,9 +43,16 @@ class _LoginScreenState extends State<LoginScreen> {
         passwordController: passwordController,
       );
 
+      final messaging = FirebaseMessaging.instance;
+
+      String? fcmToken = await messaging.getToken();
+
+      if (fcmToken == null) return;
+
       final user = UserLogin(
         email: emailController.text,
         password: passwordController.text,
+        fcm_token: fcmToken,
       );
 
       final response = await EntityService.login(u: user.toFormData());

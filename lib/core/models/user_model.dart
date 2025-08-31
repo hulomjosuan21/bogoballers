@@ -21,11 +21,20 @@ abstract class User {
 class UserLogin {
   final String email;
   final String password;
+  final String fcm_token;
 
-  UserLogin({required this.email, required this.password});
+  UserLogin({
+    required this.email,
+    required this.password,
+    required this.fcm_token,
+  });
 
   FormData toFormData() {
-    return FormData.fromMap({'email': email, 'password': password});
+    return FormData.fromMap({
+      'email': email,
+      'password': password,
+      'fcm_token': fcm_token,
+    });
   }
 }
 

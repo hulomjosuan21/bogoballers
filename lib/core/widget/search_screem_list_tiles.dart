@@ -1,84 +1,33 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/league.dart';
 import 'package:bogoballers/core/models/league_admin_model.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
+import 'package:bogoballers/screens/league_admin_screen.dart';
+import 'package:bogoballers/screens/league_screen.dart';
+import 'package:bogoballers/screens/player_screen.dart';
+import 'package:bogoballers/screens/team_screen.dart';
 import 'package:flutter/material.dart';
 
-class PlayerSearchResultListTile extends StatelessWidget {
-  final PlayerModel player;
+abstract class BaseSearchResultScreen<T> {
+  List<Permission> get permissions;
 
-  const PlayerSearchResultListTile({super.key, required this.player});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(Sizes.radiusSm),
-        child: Image.network(
-          player.profile_image_url,
-          width: 48,
-          height: 48,
-          fit: BoxFit.cover,
-        ),
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              maxLines: 1,
-              overflow: TextOverflow.fade,
-              player.full_name,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-          ),
-          const SizedBox(width: 8),
-          _buildBadge('Player', Colors.blue),
-        ],
-      ),
-    );
-  }
+  T get result;
 }
 
-class TeamSearchResultListTile extends StatelessWidget {
-  final TeamModelForSearchResult team;
-
-  const TeamSearchResultListTile({super.key, required this.team});
+class PlayerSearchResultListTile extends StatelessWidget
+    implements BaseSearchResultScreen<PlayerModel> {
+  @override
+  final List<Permission> permissions;
 
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(Sizes.radiusSm),
-        child: Image.network(
-          team.team_logo_url,
-          width: 48,
-          height: 48,
-          fit: BoxFit.cover,
-        ),
-      ),
-      title: Row(
-        children: [
-          Text(
-            maxLines: 1,
-            overflow: TextOverflow.fade,
-            team.team_name,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-          const SizedBox(width: 8),
-          _buildBadge('Team', Colors.green),
-        ],
-      ),
-    );
-  }
-}
+  final PlayerModel result;
 
-class LeagueAdministratorSearchResultListTile extends StatelessWidget {
-  final LeagueAdminModel leagueAdmin;
-
-  const LeagueAdministratorSearchResultListTile({
+  const PlayerSearchResultListTile({
     super.key,
-    required this.leagueAdmin,
+    required this.result,
+    required this.permissions,
   });
 
   @override
@@ -87,7 +36,7 @@ class LeagueAdministratorSearchResultListTile extends StatelessWidget {
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(Sizes.radiusSm),
         child: Image.network(
-          leagueAdmin.organization_logo_url,
+          result.profile_image_url,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
@@ -99,22 +48,37 @@ class LeagueAdministratorSearchResultListTile extends StatelessWidget {
             child: Text(
               maxLines: 1,
               overflow: TextOverflow.fade,
-              leagueAdmin.organization_name,
+              result.full_name,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),
           const SizedBox(width: 8),
-          _buildBadge('League Admin', Colors.orange),
+          _buildBadge('Player', Colors.blue),
         ],
+      ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              PlayerScreen(permissions: permissions, result: result),
+        ),
       ),
     );
   }
 }
 
-class LeagueSearchResultListTile extends StatelessWidget {
-  final LeagueModel league;
+class TeamSearchResultListTile extends StatelessWidget
+    implements BaseSearchResultScreen<TeamModelForSearchResult> {
+  @override
+  final TeamModelForSearchResult result;
+  @override
+  final List<Permission> permissions;
 
-  const LeagueSearchResultListTile({super.key, required this.league});
+  const TeamSearchResultListTile({
+    super.key,
+    required this.result,
+    required this.permissions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +86,7 @@ class LeagueSearchResultListTile extends StatelessWidget {
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(Sizes.radiusSm),
         child: Image.network(
-          league.banner_url,
+          result.team_logo_url,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
@@ -132,7 +96,109 @@ class LeagueSearchResultListTile extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              league.league_title,
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              result.team_name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildBadge('Team', Colors.green),
+        ],
+      ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              TeamScreen(permissions: permissions, result: result),
+        ),
+      ),
+    );
+  }
+}
+
+class LeagueAdministratorSearchResultListTile extends StatelessWidget
+    implements BaseSearchResultScreen<LeagueAdminModel> {
+  @override
+  final LeagueAdminModel result;
+  @override
+  final List<Permission> permissions;
+
+  const LeagueAdministratorSearchResultListTile({
+    super.key,
+    required this.result,
+    required this.permissions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(Sizes.radiusSm),
+        child: Image.network(
+          result.organization_logo_url,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+        ),
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              result.organization_name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildBadge('League Admin', Colors.orange),
+        ],
+      ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LeagueAdministratorScreen(
+            permissions: permissions,
+            result: result,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LeagueSearchResultListTile extends StatelessWidget
+    implements BaseSearchResultScreen<LeagueModel> {
+  @override
+  final LeagueModel result;
+  @override
+  final List<Permission> permissions;
+
+  const LeagueSearchResultListTile({
+    super.key,
+    required this.result,
+    required this.permissions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(Sizes.radiusSm),
+        child: Image.network(
+          result.banner_url,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+        ),
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              result.league_title,
               maxLines: 2,
               overflow: TextOverflow.fade,
               softWrap: true,
@@ -142,6 +208,13 @@ class LeagueSearchResultListTile extends StatelessWidget {
           const SizedBox(width: 8),
           _buildBadge('League', Colors.indigoAccent),
         ],
+      ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              LeagueScreen(permissions: permissions, result: result),
+        ),
       ),
     );
   }

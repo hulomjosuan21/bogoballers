@@ -1,8 +1,10 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/league.dart';
 import 'package:bogoballers/core/models/league_admin_model.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
+import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/services/search_service.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
@@ -21,12 +23,14 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final SearchService _searchService = SearchService();
   final FocusNode _searchFocusNode = FocusNode();
+  late final String? accountType;
   bool _isSearching = false;
   List<dynamic> _searchResults = [];
 
   @override
   void initState() {
     super.initState();
+    _getAccountTypeFromStorage();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
     });
@@ -37,6 +41,11 @@ class _SearchScreenState extends State<SearchScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _getAccountTypeFromStorage() async {
+    final entity = await getEntityCredentialsFromStorageOrNull();
+    accountType = entity?.accountType;
   }
 
   Future<void> _performSearch(String query) async {
@@ -110,6 +119,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
           ),
         ),
+        flexibleSpace: Container(color: colors.gray1),
       ),
       body: Column(
         children: [
@@ -146,18 +156,28 @@ class _SearchScreenState extends State<SearchScreen> {
 
                         if (type == 'player') {
                           final player = PlayerModel.fromMap(data);
-                          return PlayerSearchResultListTile(player: player);
+                          return PlayerSearchResultListTile(
+                            result: player,
+                            permissions: userPermission(accountType),
+                          );
                         } else if (type == 'team') {
                           final team = TeamModelForSearchResult.fromMap(data);
-                          return TeamSearchResultListTile(team: team);
+                          return TeamSearchResultListTile(
+                            result: team,
+                            permissions: userPermission(accountType),
+                          );
                         } else if (type == 'league_administrator') {
                           final leagueAdmin = LeagueAdminModel.fromMap(data);
                           return LeagueAdministratorSearchResultListTile(
-                            leagueAdmin: leagueAdmin,
+                            result: leagueAdmin,
+                            permissions: userPermission(accountType),
                           );
                         } else if (type == 'league') {
                           final league = LeagueModel.fromMap(data);
-                          return LeagueSearchResultListTile(league: league);
+                          return LeagueSearchResultListTile(
+                            result: league,
+                            permissions: userPermission(accountType),
+                          );
                         } else {
                           return const SizedBox.shrink();
                         }
