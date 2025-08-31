@@ -1,10 +1,11 @@
-import 'dart:convert';
+import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/providers/team_manager_provider.dart';
-import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/services/test_service.dart';
+import 'package:bogoballers/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bogoballers/core/theme/theme_extensions.dart';
 
 class TeamManagerHomeScreen extends ConsumerStatefulWidget {
   const TeamManagerHomeScreen({super.key});
@@ -15,11 +16,9 @@ class TeamManagerHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
-  String? _userId;
-  String? _entityId;
-
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
     final teamManagerAsync = ref.watch(teamManagerProvider);
 
     return teamManagerAsync.when(
@@ -42,47 +41,33 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
           ),
           body: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      final info = await getEntityCredentialsFromStorage();
-                      setState(() {
-                        _userId = info.userId;
-                        _entityId = info.entityId;
-                      });
-                    } catch (e) {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text("Error: $e")));
-                    }
-                  },
-                  child: const Text("Show IDs"),
-                ),
-              ),
-
-              if (_userId != null && _entityId != null)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    "User ID: $_userId\nEntity ID: $_entityId",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SearchScreen()),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.all(Sizes.spaceMd),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.gray2,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      width: Sizes.borderWidthSm,
+                      color: colors.gray6,
                     ),
                   ),
-                ),
-
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    const JsonEncoder.withIndent(
-                      "  ",
-                    ).convert(teamManager.toMap()),
-                    style: const TextStyle(fontFamily: 'monospace'),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: colors.gray11),
+                      SizedBox(width: 8),
+                      Text("Search...", style: TextStyle(color: colors.gray11)),
+                    ],
                   ),
                 ),
               ),
