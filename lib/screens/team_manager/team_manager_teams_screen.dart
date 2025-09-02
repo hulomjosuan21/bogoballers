@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TeamManagerTeamsScreen extends ConsumerStatefulWidget {
-  const TeamManagerTeamsScreen({super.key});
+  final bool selectMode;
+
+  const TeamManagerTeamsScreen({super.key, this.selectMode = false});
 
   @override
   ConsumerState<TeamManagerTeamsScreen> createState() => _TeamsScreenState();
@@ -30,16 +32,17 @@ class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Teams"),
+        title: Text(widget.selectMode ? "Select Team" : "Teams"),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: "Add Team",
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CreateTeamSreen()),
+          if (!widget.selectMode)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: "Add Team",
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreateTeamSreen()),
+              ),
             ),
-          ),
         ],
       ),
       body: teamsAsync.when(
@@ -78,13 +81,19 @@ class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
                     style: TextStyle(color: colors.gray8, fontSize: 11),
                   ),
                   onTap: () {
-                    // Example: navigate to team details page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TeamManagerTeamScreen(team: team),
-                      ),
-                    );
+                    if (widget.selectMode) {
+                      Navigator.pop(context, {
+                        'teamId': team.team_id,
+                        'teamLogoUrl': team.team_logo_url,
+                      });
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TeamManagerTeamScreen(team: team),
+                        ),
+                      );
+                    }
                   },
                 );
               },

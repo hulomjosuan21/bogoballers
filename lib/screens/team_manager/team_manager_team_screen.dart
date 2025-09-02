@@ -1,4 +1,5 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_player_team_screen.dart';
 import 'package:flutter/material.dart';
@@ -19,15 +20,42 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
-        appBar: AppBar(centerTitle: true, title: Text(widget.team.team_name)),
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(widget.team.team_name),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'player_request':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlayerPendingRequestScreen(
+                          players: widget.team.pending_players,
+                        ),
+                      ),
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'player_request',
+                  child: Text('Player Request'),
+                ),
+              ],
+            ),
+          ],
+        ),
+
         body: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: Sizes.spaceMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo
               Center(
                 child: SizedBox(
                   width: 200,
@@ -54,7 +82,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                     label: 'Losses',
                   ),
                   SizedBox(
-                    height: 32, // or match your text+label height
+                    height: 32,
                     child: VerticalDivider(
                       thickness: 1,
                       width: 24,
@@ -95,7 +123,6 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 tabs: const [
                   Tab(text: "Players"),
                   Tab(text: "Invited"),
-                  Tab(text: "Pending"),
                 ],
               ),
               Container(
@@ -103,11 +130,10 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 height: 400,
                 child: TabBarView(
                   children: [
-                    const Center(child: Text("👥 Invited content")),
                     ListView.builder(
-                      itemCount: widget.team.invited_players.length,
+                      itemCount: widget.team.accepted_players.length,
                       itemBuilder: (context, index) {
-                        final player = widget.team.invited_players[index];
+                        final player = widget.team.accepted_players[index];
                         return ListTile(
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(Sizes.radiusSm),
@@ -144,7 +170,45 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                       },
                     ),
 
-                    const Center(child: Text("📅 Pending content")),
+                    ListView.builder(
+                      itemCount: widget.team.invited_players.length,
+                      itemBuilder: (context, index) {
+                        final player = widget.team.invited_players[index];
+                        return ListTile(
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(Sizes.radiusSm),
+                            child: Image.network(
+                              player.profile_image_url,
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          title: Text(
+                            player.full_name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Text(
+                            "${player.jersey_name} | #${player.jersey_number.toStringAsFixed(0)}",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: colors.gray8, fontSize: 11),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PlayerTeamScreen(
+                                onTeamScreen: false,
+                                player: player,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -173,6 +237,53 @@ class StatCell extends StatelessWidget {
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
+    );
+  }
+}
+
+class PlayerPendingRequestScreen extends StatelessWidget {
+  final List<PlayerTeamModel> players;
+  const PlayerPendingRequestScreen({super.key, required this.players});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    return Scaffold(
+      appBar: AppBar(centerTitle: true, title: Text("Player Request")),
+      body: ListView.builder(
+        itemCount: players.length,
+        itemBuilder: (context, index) {
+          final player = players[index];
+          return ListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(Sizes.radiusSm),
+              child: Image.network(
+                player.profile_image_url,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+              ),
+            ),
+            title: Text(
+              player.full_name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            subtitle: Text(
+              "${player.jersey_name} | #${player.jersey_number.toStringAsFixed(0)}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: colors.gray8, fontSize: 11),
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    PlayerTeamScreen(onTeamScreen: false, player: player),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -57,7 +57,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      final searchResult = await _searchService.searchTeamOrPlayer(query);
+      final searchResult = await _searchService.searchEntity(query);
 
       if (searchResult['total_results'] == 0) {
         if (mounted) {

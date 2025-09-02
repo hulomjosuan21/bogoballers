@@ -8,6 +8,7 @@ abstract class League {
   final String league_administrator_id;
   final String league_title;
   final String league_description;
+  final String league_address;
   final double league_budget;
   final String registration_deadline;
   final String opening_date;
@@ -22,6 +23,7 @@ abstract class League {
     required this.league_administrator_id,
     required this.league_title,
     required this.league_description,
+    required this.league_address,
     required this.league_budget,
     required this.registration_deadline,
     required this.opening_date,
@@ -45,6 +47,7 @@ class LeagueModel extends League {
     required super.league_title,
     required super.league_description,
     required super.league_budget,
+    required super.league_address,
     required super.registration_deadline,
     required super.opening_date,
     required super.league_schedule,
@@ -64,6 +67,7 @@ class LeagueModel extends League {
       league_administrator_id: map['league_administrator_id'],
       league_title: map['league_title'],
       league_description: map['league_description'],
+      league_address: map['league_address'],
       league_budget: map['league_budget'],
       registration_deadline: map['registration_deadline'],
       opening_date: map['opening_date'],
@@ -107,6 +111,9 @@ class LeagueCategory extends Category {
     required this.max_team,
     required this.accept_teams,
     required this.rounds,
+    required super.requires_valid_document,
+    required super.allowed_documents,
+    required super.document_valid_until,
   });
 
   factory LeagueCategory.fromMap(Map<String, dynamic> map) {
@@ -124,6 +131,11 @@ class LeagueCategory extends Category {
       allow_guest_player: map['allow_guest_player'],
       guest_player_fee_amount: map['guest_player_fee_amount'],
       league_category_id: map['league_category_id'],
+      requires_valid_document: map['requires_valid_document'],
+      allowed_documents: map['allowed_documents'] != null
+          ? List<String>.from(map['allowed_documents'])
+          : null,
+      document_valid_until: map['document_valid_until'],
       league_id: map['league_id'],
       max_team: map['max_team'],
       accept_teams: map['accept_teams'],

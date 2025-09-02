@@ -1,12 +1,23 @@
-import 'package:bogoballers/core/utils/custom_exceptions.dart';
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 class ErrorHandler {
-  static String getErrorMessage(Object error) {
-    if (error is ValidationException) {
-      return error.message;
-    }
+  static String getErrorMessage(Object error, {bool devMode = true}) {
+    if (devMode) return error.toString();
+
     if (error is DioException) {
+      final data = error.response?.data;
+
+      if (data != null) {
+        try {
+          final jsonData = data is String ? json.decode(data) : data;
+          if (jsonData is Map && jsonData.containsKey('message')) {
+            return jsonData['message'];
+          }
+        } catch (_) {}
+      }
+
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
         case DioExceptionType.sendTimeout:
@@ -29,6 +40,7 @@ class ErrorHandler {
     if (error is FormatException) {
       return "Invalid response format from server.";
     }
+
     if (error.toString().contains("SocketException")) {
       return "No internet connection. Please check your network.";
     }

@@ -13,6 +13,9 @@ class Category {
   final double team_entrance_fee_amount;
   final bool allow_guest_player;
   final double guest_player_fee_amount;
+  final bool requires_valid_document;
+  final List<String>? allowed_documents;
+  final String? document_valid_until;
 
   Category({
     required this.category_id,
@@ -27,5 +30,8 @@ class Category {
     required this.team_entrance_fee_amount,
     required this.allow_guest_player,
     required this.guest_player_fee_amount,
+    required this.requires_valid_document,
+    required this.allowed_documents,
+    required this.document_valid_until,
   });
 }

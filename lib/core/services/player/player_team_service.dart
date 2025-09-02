@@ -17,19 +17,29 @@ class PlayerTeamUpdatePayload {
 }
 
 class PlayerTeamService {
-  static Future<ApiResponse> invitePlayer({
+  static Future<ApiResponse> addPlayer({
     required String teamId,
     required String playerId,
+    required String status,
+    String? teamLogoUrl, // already nullable
   }) async {
     final api = DioClient().client;
 
     final entity = await getEntityCredentialsFromStorage();
-    final user_id = entity.userId;
+    final userId = entity.userId;
+
+    final data = {
+      "team_id": teamId,
+      "player_id": playerId,
+      "status": status,
+      if (teamLogoUrl != null && teamLogoUrl.isNotEmpty)
+        "team_logo_url": teamLogoUrl,
+    };
 
     Response response = await api.post(
-      "/player-team/invite",
-      queryParameters: {"user_id": user_id},
-      data: {"team_id": teamId, "player_id": playerId},
+      "/player-team/add-player",
+      queryParameters: {"user_id": userId},
+      data: data,
     );
 
     return ApiResponse.fromJsonNoPayload(response.data);
