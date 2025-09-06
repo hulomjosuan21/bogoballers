@@ -1,4 +1,6 @@
 import 'package:bogoballers/core/services/socket_io_service.dart';
+import 'package:bogoballers/core/utils/error_handler.dart';
+import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bogoballers/core/services/entity_service.dart';
@@ -10,21 +12,26 @@ class ConversationListScreen extends StatefulWidget {
   State<ConversationListScreen> createState() => _ConversationListScreenState();
 }
 
-class _ConversationListScreenState extends State<ConversationListScreen> {
+class _ConversationListScreenState extends State<ConversationListScreen>
+    with WidgetsBindingObserver {
   String? currentUserId;
   List<dynamic> conversations = [];
   bool _isLoading = true;
   bool _isSocketConnected = false;
+  bool _hasInitialized = false;
+
+  bool _hasLoadedConversations = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _init();
   }
 
   @override
   void dispose() {
-    // cleanup listeners to avoid duplicates when screen is reopened
+    WidgetsBinding.instance.removeObserver(this);
     try {
       SocketService.instance.off('conversations');
       SocketService.instance.off('new_message');
@@ -33,22 +40,23 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     super.dispose();
   }
 
-  Future<void> _init() async {
-    try {
-      debugPrint('🚀 Initializing ConversationListScreen');
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed && _hasInitialized) {
+      _refreshConversations();
+    }
+  }
 
+  Future<void> _init() async {
+    if (_hasInitialized) return;
+    try {
       final entity = await getEntityCredentialsFromStorage();
       setState(() => currentUserId = entity.userId);
 
-      debugPrint('👤 Current user ID: ${entity.userId}');
-
       final socketService = SocketService.instance;
-
       if (!socketService.isConnected) {
-        debugPrint('🔄 Connecting to socket...');
         await socketService.connect();
-
-        // Wait for connection with timeout (10s)
         int attempts = 0;
         while (!socketService.isConnected && attempts < 20) {
           await Future.delayed(const Duration(milliseconds: 500));
@@ -59,148 +67,242 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       setState(() {
         _isSocketConnected = socketService.isConnected;
         _isLoading = false;
+        _hasInitialized = true;
       });
 
       if (!_isSocketConnected) {
-        debugPrint('❌ Failed to connect to socket');
+        setState(() {
+          _hasLoadedConversations = true;
+        });
         _showConnectionError();
         return;
       }
 
-      debugPrint('✅ Socket connected successfully');
       _setupSocketListeners();
-
-      // Request conversations from server
+      await Future.delayed(const Duration(milliseconds: 200));
       socketService.getConversations(entity.userId);
     } catch (e) {
-      debugPrint('❌ Error during initialization: $e');
       setState(() {
         _isLoading = false;
+        _hasInitialized = true;
+        _hasLoadedConversations = true;
       });
-      _showError('Failed to initialize. Please try again.');
+      if (!mounted) return;
+      showAppSnackbar(
+        context,
+        message: 'Failed to initialize. Please try again.',
+        title: "Error",
+        variant: SnackbarVariant.error,
+      );
     }
   }
 
   void _setupSocketListeners() {
     final socketService = SocketService.instance;
 
-    // Conversations list
+    try {
+      socketService.off('conversations');
+      socketService.off('new_message');
+      socketService.off('message_sent');
+    } catch (_) {}
+
     socketService.onConversations((data) {
-      debugPrint(
-        '📋 Received conversations (truncated): ${data.toString().substring(0, 120)}',
-      );
       try {
-        final conversationData =
-            (data is Map && data.containsKey('conversations'))
-            ? data['conversations']
-            : data;
-        if (conversationData != null && conversationData is List) {
-          setState(() {
-            conversations = List.from(conversationData);
+        List<dynamic>? conversationData;
+        if (data is List) {
+          conversationData = data;
+        } else if (data is Map) {
+          if (data.containsKey('conversations') &&
+              data['conversations'] is List) {
+            conversationData = data['conversations'];
+          } else if (data.containsKey('data') && data['data'] is List) {
+            conversationData = data['data'];
+          }
+        }
+
+        if (conversationData != null) {
+          conversationData.sort((a, b) {
+            final aMessages = (a['messages'] as List?) ?? [];
+            final bMessages = (b['messages'] as List?) ?? [];
+
+            if (aMessages.isEmpty && bMessages.isEmpty) return 0;
+            if (aMessages.isEmpty) return 1;
+            if (bMessages.isEmpty) return -1;
+
+            final aLastTime = aMessages.last['sent_at'];
+            final bLastTime = bMessages.last['sent_at'];
+
+            if (aLastTime == null && bLastTime == null) return 0;
+            if (aLastTime == null) return 1;
+            if (bLastTime == null) return -1;
+
+            try {
+              final aDate = DateTime.parse(aLastTime);
+              final bDate = DateTime.parse(bLastTime);
+              return bDate.compareTo(aDate);
+            } catch (_) {
+              return 0;
+            }
           });
-          debugPrint('✅ Updated conversations list: ${conversations.length}');
+
+          setState(() {
+            conversations = List.from(conversationData ?? []);
+            _hasLoadedConversations = true;
+          });
         } else {
-          debugPrint('⚠️ Invalid conversation data format: $data');
+          setState(() {
+            conversations = [];
+            _hasLoadedConversations = true;
+          });
         }
       } catch (e) {
-        debugPrint('❌ Error processing conversations: $e');
+        setState(() {
+          conversations = [];
+          _hasLoadedConversations = true;
+        });
       }
     });
 
-    // New message
     socketService.onNewMessage((messageData) {
-      debugPrint('📨 ConversationList received new_message: $messageData');
-
-      if (currentUserId == null) {
-        debugPrint('⚠️ Current user ID is null, ignoring message');
-        return;
-      }
-
-      try {
-        final senderId = messageData['sender_id']?.toString();
-        final receiverId = messageData['receiver_id']?.toString();
-
-        final otherId = (senderId == currentUserId) ? receiverId : senderId;
-        final otherName = (senderId == currentUserId)
-            ? messageData['receiver_name']
-            : messageData['sender_name'];
-        final otherEntityId = (senderId == currentUserId)
-            ? messageData['receiver_entity_id']
-            : messageData['sender_entity_id'];
-
-        debugPrint('🔄 Processing message from/to: $otherId ($otherName)');
-
+      if (currentUserId == null) return;
+      _updateConversationWithNewMessage(messageData);
+      if (!_hasLoadedConversations) {
         setState(() {
-          final idx = conversations.indexWhere(
-            (c) => c?['conversation_with']?['user_id']?.toString() == otherId,
+          _hasLoadedConversations = true;
+        });
+      }
+    });
+
+    socketService.onMessageSent((serverMsg) {
+      _updateConversationWithNewMessage(serverMsg);
+      if (!_hasLoadedConversations) {
+        setState(() {
+          _hasLoadedConversations = true;
+        });
+      }
+    });
+  }
+
+  void _updateConversationWithNewMessage(Map<String, dynamic> messageData) {
+    try {
+      final senderId = messageData['sender_id']?.toString();
+      final receiverId = messageData['receiver_id']?.toString();
+
+      final otherId = (senderId == currentUserId) ? receiverId : senderId;
+      final otherName = (senderId == currentUserId)
+          ? messageData['receiver_name']
+          : messageData['sender_name'];
+      final otherEntityId = (senderId == currentUserId)
+          ? messageData['receiver_entity_id']
+          : messageData['sender_entity_id'];
+
+      setState(() {
+        final idx = conversations.indexWhere(
+          (c) => c?['conversation_with']?['user_id']?.toString() == otherId,
+        );
+
+        final newMessage = {
+          "message_id": messageData["message_id"],
+          "content": messageData["content"],
+          "sent_at": messageData["sent_at"],
+          "sender_id": senderId,
+          "receiver_id": receiverId,
+        };
+
+        if (idx != -1) {
+          final messages = List<Map<String, dynamic>>.from(
+            (conversations[idx]["messages"] as List?) ?? [],
           );
 
-          final newMessage = {
-            "message_id": messageData["message_id"],
-            "content": messageData["content"],
-            "sent_at": messageData["sent_at"],
-            "sender_id": senderId,
-            "receiver_id": receiverId,
-          };
+          final messageId = messageData["message_id"];
+          final isDuplicate = messageId != null
+              ? messages.any((m) => m["message_id"] == messageId)
+              : messages.any(
+                  (m) =>
+                      m["content"] == newMessage["content"] &&
+                      m["sent_at"] == newMessage["sent_at"] &&
+                      m["sender_id"] == newMessage["sender_id"],
+                );
 
-          if (idx != -1) {
-            final messages = (conversations[idx]["messages"] as List?) ?? [];
-            final messageId = messageData["message_id"];
-            final exists =
-                messageId != null &&
-                messages.any((m) => m["message_id"] == messageId);
-
-            if (!exists) {
-              conversations[idx]["messages"] = [...messages, newMessage];
-
-              // Move conversation to top
-              final conv = conversations.removeAt(idx);
-              conversations.insert(0, conv);
-            }
-          } else {
-            conversations.insert(0, {
-              "conversation_with": {
-                "user_id": otherId,
-                "name": otherName ?? "Unknown User",
-                "entity_id": otherEntityId,
-              },
-              "messages": [newMessage],
-            });
+          if (!isDuplicate) {
+            messages.add(newMessage);
+            conversations[idx]["messages"] = messages;
+            final conv = conversations.removeAt(idx);
+            conversations.insert(0, conv);
           }
-        });
-      } catch (e) {
-        debugPrint('❌ Error processing new message in conversation list: $e');
-      }
-    });
+        } else {
+          final newConversation = {
+            "conversation_with": {
+              "user_id": otherId,
+              "name": otherName ?? "Unknown User",
+              "entity_id": otherEntityId,
+            },
+            "messages": [newMessage],
+          };
+          conversations.insert(0, newConversation);
+        }
 
-    // message_sent (confirmation)
-    socketService.onMessageSent((serverMsg) {
-      debugPrint('✅ ConversationList received message_sent: $serverMsg');
-      // optionally update UI if needed (we handle optimistic updates in ChatScreen)
-    });
+        _hasLoadedConversations = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: ErrorHandler.getErrorMessage(e),
+          title: "Error",
+          variant: SnackbarVariant.error,
+        );
+      }
+    }
   }
 
   void _showConnectionError() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Failed to connect. Please check your internet connection.',
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Failed to connect. Please check your internet connection.',
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+      );
+    }
   }
 
   Future<void> _refreshConversations() async {
-    if (currentUserId != null && _isSocketConnected) {
-      debugPrint('🔄 Refreshing conversations...');
-      SocketService.instance.getConversations(currentUserId!);
+    if (currentUserId != null) {
+      final socketService = SocketService.instance;
+
+      if (!socketService.isConnected) {
+        setState(() => _isLoading = true);
+        await socketService.connect();
+
+        int attempts = 0;
+        while (!socketService.isConnected && attempts < 10) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          attempts++;
+        }
+
+        setState(() {
+          _isSocketConnected = socketService.isConnected;
+          _isLoading = false;
+        });
+
+        if (socketService.isConnected) {
+          _setupSocketListeners();
+        }
+      }
+
+      if (socketService.isConnected) {
+        // request updated conversations — the listener will flip _hasLoadedConversations
+        socketService.getConversations(currentUserId!);
+      } else {
+        // Show connection error and make sure we don't get stuck on an indefinite "loading" UI
+        _showConnectionError();
+        setState(() {
+          _hasLoadedConversations = true;
+        });
+      }
     }
   }
 
@@ -254,6 +356,12 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       );
     }
 
+    // only show conversations that actually contain messages
+    final realConversations = conversations.where((c) {
+      final msgs = (c["messages"] as List?) ?? [];
+      return msgs.isNotEmpty;
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Messages"),
@@ -271,10 +379,6 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _isSocketConnected ? _refreshConversations : null,
-          ),
         ],
       ),
       body: Column(
@@ -291,50 +395,60 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               ),
             ),
           Expanded(
-            child: conversations.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: RefreshIndicator(
+              onRefresh: _refreshConversations,
+              child: (!_hasLoadedConversations)
+                  // first-mount: wait for socket response (shows inline spinner)
+                  ? const Center(child: CircularProgressIndicator())
+                  : realConversations.isEmpty
+                  // only show "No conversations yet" after we've loaded/resolved
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        const Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "No conversations yet",
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          "Start a conversation to see your messages here",
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (_isSocketConnected) ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _refreshConversations,
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Refresh'),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.7,
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.chat_bubble_outline,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "No conversations yet",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Start a conversation to see your messages here",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _refreshConversations,
-                    child: ListView.builder(
-                      itemCount: conversations.length,
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: realConversations.length,
                       itemBuilder: (context, index) {
-                        final convo = conversations[index];
+                        final convo = realConversations[index];
                         final partner = convo["conversation_with"];
-                        final messagesList =
-                            (convo["messages"] as List<dynamic>?) ?? [];
-                        final lastMessage = messagesList.isNotEmpty
-                            ? messagesList.last
-                            : null;
+                        final messagesList = List<Map<String, dynamic>>.from(
+                          (convo["messages"] as List<dynamic>?) ?? [],
+                        );
+                        final lastMessage = messagesList.last;
 
                         return Card(
                           margin: const EdgeInsets.symmetric(
@@ -362,30 +476,24 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    lastMessage?["content"] ??
-                                        "No messages yet",
+                                    lastMessage["content"] ?? "",
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(color: Colors.grey[600]),
                                   ),
                                 ),
-                                if (lastMessage != null) ...[
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _formatTimestamp(lastMessage["sent_at"]),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[500],
-                                    ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _formatTimestamp(lastMessage["sent_at"]),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
                                   ),
-                                ],
+                                ),
                               ],
                             ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
-                              debugPrint(
-                                '🚀 Opening chat with: ${partner["name"]}',
-                              );
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -401,7 +509,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                         );
                       },
                     ),
-                  ),
+            ),
           ),
         ],
       ),

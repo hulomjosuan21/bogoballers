@@ -10,6 +10,8 @@ class SocketService {
   bool _isConnected = false;
   String? _currentUserId;
 
+  final Map<String, void Function(dynamic)> _eventCallbacks = {};
+
   static const String _socketUrl = 'https://api.bogoballers.site';
 
   Future<void> connect() async {
@@ -49,6 +51,7 @@ class SocketService {
         _isConnected = true;
         if (_currentUserId != null) {
           socket!.emit('join', {'user_id': _currentUserId});
+          _reregisterCallbacks();
         }
       });
 
@@ -62,6 +65,8 @@ class SocketService {
         _isConnected = true;
         if (_currentUserId != null) {
           socket!.emit('join', {'user_id': _currentUserId});
+          _reregisterCallbacks();
+          getConversations(_currentUserId!);
         }
       });
 
@@ -81,6 +86,13 @@ class SocketService {
     }
   }
 
+  void _reregisterCallbacks() {
+    _eventCallbacks.forEach((event, callback) {
+      socket?.off(event);
+      socket?.on(event, callback);
+    });
+  }
+
   void register(String userId) {
     if (_isConnected && socket != null && socket!.connected) {
       socket!.emit('register', {'user_id': userId});
@@ -89,6 +101,7 @@ class SocketService {
 
   void getConversations(String userId) {
     if (_isConnected && socket != null && socket!.connected) {
+      debugPrint('🔄 Requesting conversations for user: $userId');
       socket!.emit('get_conversations', {'user_id': userId});
     }
   }
@@ -125,21 +138,45 @@ class SocketService {
   }
 
   void onNewMessage(void Function(Map<String, dynamic>) callback) {
-    socket?.off('new_message');
-    socket?.on('new_message', (data) {
+    const event = 'new_message';
+
+    void socketCallback(dynamic data) {
+      debugPrint('📨 Raw new_message data: $data');
       final msg = _extractMessage(data);
-      if (msg != null) callback(msg);
-    });
+      if (msg != null) {
+        debugPrint('✅ Processed new_message: $msg');
+        callback(msg);
+      } else {
+        debugPrint('⚠️ Could not extract message from: $data');
+      }
+    }
+
+    _eventCallbacks[event] = socketCallback;
+    socket?.off(event);
+    socket?.on(event, socketCallback);
   }
 
   void onConversations(void Function(dynamic) callback) {
-    socket?.off('conversations');
-    socket?.on('conversations', callback);
+    const event = 'conversations';
+
+    void socketCallback(dynamic data) {
+      debugPrint('📋 Raw conversations data type: ${data.runtimeType}');
+      debugPrint(
+        '📋 Raw conversations data: ${data.toString().length > 500 ? data.toString().substring(0, 500) + "..." : data}',
+      );
+      callback(data);
+    }
+
+    _eventCallbacks[event] = socketCallback;
+    socket?.off(event);
+    socket?.on(event, socketCallback);
   }
 
   void onMessageSent(void Function(Map<String, dynamic>) callback) {
-    socket?.off('message_sent');
-    socket?.on('message_sent', (data) {
+    const event = 'message_sent';
+
+    void socketCallback(dynamic data) {
+      debugPrint('✅ Raw message_sent data: $data');
       final msg = _extractMessage(data);
       if (msg != null) {
         callback(msg);
@@ -151,21 +188,29 @@ class SocketService {
           }
         } catch (_) {}
       }
-    });
+    }
+
+    _eventCallbacks[event] = socketCallback;
+    socket?.off(event);
+    socket?.on(event, socketCallback);
   }
 
   void off(String event) {
     socket?.off(event);
+    _eventCallbacks.remove(event);
   }
 
   void clearListeners() {
     socket?.clearListeners();
+    _eventCallbacks.clear();
   }
 
   bool get isConnected => _isConnected && socket != null && socket!.connected;
+  String? get currentUserId => _currentUserId;
 
   void disconnect() {
     _isConnected = false;
+    _eventCallbacks.clear();
     try {
       socket?.disconnect();
       socket?.clearListeners();
