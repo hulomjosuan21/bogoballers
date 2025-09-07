@@ -1,42 +1,38 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/helpers/message_helpers.dart';
+import 'package:bogoballers/core/models/message.dart';
 import 'package:bogoballers/core/services/socket_io_service.dart';
 import 'package:flutter/material.dart';
+import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
-  final Map<String, dynamic> partner;
-  final List<Map<String, dynamic>> initialMessages;
+  final ConversationWith partner;
+  final List<Message> initialMessages;
 
   const ChatScreen({
     super.key,
     required this.currentUserId,
     required this.partner,
-    this.initialMessages = const [],
+    required this.initialMessages,
   });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
-  late List<Map<String, dynamic>> _messages;
-  final TextEditingController _controller = TextEditingController();
+class _ChatScreenState extends State<ChatScreen> {
+  late List<Message> messages;
+  final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  bool _isConnected = false;
-  final Set<String> _pendingMessages = {};
+  bool _isSocketConnected = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-    _messages = List<Map<String, dynamic>>.from(widget.initialMessages);
-    _sortMessages();
-
-    _isConnected = SocketService.instance.isConnected;
-    _setupSocketListeners();
-
+    messages = List<Message>.from(widget.initialMessages);
+    _setupSocket();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
@@ -44,434 +40,158 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
+    _messageController.dispose();
     _scrollController.dispose();
+    try {
+      SocketService.instance.off('new_message');
+      SocketService.instance.off('message_sent');
+    } catch (_) {}
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        _isConnected = SocketService.instance.isConnected;
+  void _setupSocket() {
+    final socketService = SocketService.instance;
+
+    if (!socketService.isConnected) {
+      socketService.connect().then((_) {
+        if (mounted) {
+          setState(() => _isSocketConnected = socketService.isConnected);
+        }
       });
+    } else {
+      setState(() => _isSocketConnected = true);
+    }
+
+    try {
+      socketService.off('new_message');
+      socketService.off('message_sent');
+    } catch (_) {}
+
+    socketService.onNewMessage(_handleNewMessage);
+    socketService.onMessageSent(_handleMessageSent);
+  }
+
+  void _handleNewMessage(dynamic messageDataRaw) {
+    try {
+      final messageData = messageDataRaw as Map<String, dynamic>;
+      final newMessage = Message.fromMap(messageData);
+
+      if (newMessage.senderId == widget.partner.userId &&
+          newMessage.receiverId == widget.currentUserId) {
+        setState(() {
+          if (!isDuplicateMessage(newMessage, messages)) {
+            messages.add(newMessage);
+            _scrollToBottom();
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: "Failed to receive message: ${e.toString()}",
+          title: "Error",
+          variant: SnackbarVariant.error,
+        );
+      }
     }
   }
 
-  void _sortMessages() {
-    _messages.sort((a, b) {
-      final aTime = a['sent_at'];
-      final bTime = b['sent_at'];
+  void _handleMessageSent(dynamic messageDataRaw) {
+    try {
+      final messageData = messageDataRaw as Map<String, dynamic>;
+      final newMessage = Message.fromMap(messageData);
 
-      if (aTime == null && bTime == null) return 0;
-      if (aTime == null) return -1;
-      if (bTime == null) return 1;
+      if (newMessage.senderId == widget.currentUserId &&
+          newMessage.receiverId == widget.partner.userId) {
+        setState(() {
+          final tempMessageIndex = messages.indexWhere(
+            (m) =>
+                m.messageId == null &&
+                m.content == newMessage.content &&
+                m.senderId == widget.currentUserId,
+          );
 
-      try {
-        final aDate = DateTime.parse(aTime);
-        final bDate = DateTime.parse(bTime);
-        return aDate.compareTo(bDate);
-      } catch (e) {
-        return 0;
+          if (tempMessageIndex != -1) {
+            messages[tempMessageIndex] = newMessage;
+          } else if (!isDuplicateMessage(newMessage, messages)) {
+            messages.add(newMessage);
+          }
+          _scrollToBottom();
+        });
       }
-    });
-  }
-
-  void _setupSocketListeners() {
-    final socketService = SocketService.instance;
-
-    socketService.onNewMessage((msg) {
-      final senderId = msg['sender_id']?.toString();
-      final receiverId = msg['receiver_id']?.toString();
-      final partnerId = widget.partner['user_id']?.toString();
-
-      final isRelevant =
-          (senderId == partnerId && receiverId == widget.currentUserId) ||
-          (senderId == widget.currentUserId && receiverId == partnerId);
-
-      if (isRelevant) {
-        _addMessage(msg, fromSocket: true);
-      }
-    });
-
-    socketService.onMessageSent((serverMsg) {
-      final senderId = serverMsg['sender_id']?.toString();
-      final receiverId = serverMsg['receiver_id']?.toString();
-      final partnerId = widget.partner['user_id']?.toString();
-
-      final isRelevant =
-          (senderId == widget.currentUserId && receiverId == partnerId);
-
-      if (isRelevant) {
-        _handleMessageConfirmation(serverMsg);
-      }
-    });
-  }
-
-  void _addMessage(
-    Map<String, dynamic> message, {
-    bool fromSocket = false,
-    bool optimistic = false,
-  }) {
-    setState(() {
-      final messageId = message['message_id'];
-
-      if (messageId != null) {
-        final exists = _messages.any((m) => m['message_id'] == messageId);
-        if (exists) {
-          debugPrint('⚠️ Duplicate message detected by ID: $messageId');
-          return;
-        }
-      }
-
-      if (messageId == null || optimistic) {
-        final content = message['content'];
-        final sentAt = message['sent_at'];
-        final senderId = message['sender_id'];
-
-        final exists = _messages.any(
-          (m) =>
-              m['content'] == content &&
-              m['sent_at'] == sentAt &&
-              m['sender_id'] == senderId,
+    } catch (e) {
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: "Failed to process sent message: ${e.toString()}",
+          title: "Error",
+          variant: SnackbarVariant.error,
         );
-
-        if (exists) {
-          return;
-        }
       }
+    }
+  }
 
-      if (optimistic && messageId == null) {
-        final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-        message['message_id'] = tempId;
-        message['_is_optimistic'] = true;
-        _pendingMessages.add(tempId);
-      }
+  void _sendMessage() {
+    final content = _messageController.text.trim();
+    if (content.isEmpty || !_isSocketConnected) return;
 
-      _messages.add(message);
-      _sortMessages();
+    final socketService = SocketService.instance;
+    final tempMessage = Message(
+      messageId: null,
+      senderId: widget.currentUserId,
+      receiverId: widget.partner.userId,
+      content: content,
+      sentAt: DateTime.now().toIso8601String(),
+    );
 
-      debugPrint(
-        '✅ Added message: ${message['content']} (optimistic: $optimistic, fromSocket: $fromSocket)',
-      );
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    setState(() {
+      messages.add(tempMessage);
+      _messageController.clear();
       _scrollToBottom();
     });
-  }
 
-  void _handleMessageConfirmation(Map<String, dynamic> serverMsg) {
-    setState(() {
-      final content = serverMsg['content'];
-
-      final tempIndex = _messages.indexWhere(
-        (m) =>
-            m['_is_optimistic'] == true &&
-            m['content'] == content &&
-            m['sender_id'] == widget.currentUserId,
-      );
-
-      if (tempIndex != -1) {
-        final tempId = _messages[tempIndex]['message_id'];
-        _pendingMessages.remove(tempId);
-        _messages[tempIndex] = {...serverMsg, '_is_confirmed': true};
-      } else {
-        _addMessage(serverMsg, fromSocket: true);
-      }
+    socketService.sendMessage({
+      'sender_id': widget.currentUserId,
+      'receiver_id': widget.partner.userId,
+      'content': content,
     });
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  void _sendMessage() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || !_isConnected) return;
-
-    final tempMessage = {
-      "sender_id": widget.currentUserId,
-      "receiver_id": widget.partner['user_id'],
-      "content": text,
-    };
-
-    _controller.clear();
-
-    _addMessage(tempMessage, optimistic: true);
-
-    try {
-      final serverMessage = Map<String, dynamic>.from(tempMessage);
-      serverMessage.remove('_is_optimistic');
-
-      SocketService.instance.sendMessage(serverMessage);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send message: $e'),
-          backgroundColor: Colors.red,
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: () {
-              final retryMessage = Map<String, dynamic>.from(tempMessage);
-              retryMessage.remove('_is_optimistic');
-              SocketService.instance.sendMessage(retryMessage);
-            },
-          ),
-        ),
-      );
-    }
-  }
-
-  String _formatMessageTime(String? timestamp) {
-    if (timestamp == null) return '';
-    try {
-      final dateTime = DateTime.parse(timestamp);
-      final now = DateTime.now();
-      final diff = now.difference(dateTime);
-
-      if (diff.inDays > 0) {
-        return '${dateTime.day}/${dateTime.month}';
-      } else if (diff.inHours > 0) {
-        final hour = dateTime.hour;
-        final minute = dateTime.minute.toString().padLeft(2, '0');
-        final period = hour >= 12 ? 'PM' : 'AM';
-        final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return '$displayHour:$minute $period';
-      } else if (diff.inMinutes > 0) {
-        return '${diff.inMinutes}m ago';
-      } else {
-        return 'now';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 50,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
-    } catch (e) {
-      return '';
-    }
-  }
-
-  Widget _buildMessage(Map<String, dynamic> message, int index) {
-    final isMe = message['sender_id'] == widget.currentUserId;
-    final content = message['content'] ?? '';
-    final timestamp = message['sent_at'];
-    final isOptimistic = message['_is_optimistic'] == true;
-
-    Widget? dateSeparator;
-    if (index == 0 || _shouldShowDateSeparator(index)) {
-      dateSeparator = _buildDateSeparator(timestamp);
-    }
-
-    return Column(
-      children: [
-        if (dateSeparator != null) dateSeparator,
-        Align(
-          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: EdgeInsets.only(
-              left: isMe ? 50 : 8,
-              right: isMe ? 8 : 50,
-              bottom: 4,
-            ),
-            child: Column(
-              crossAxisAlignment: isMe
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? (isOptimistic ? Colors.blue[200] : Colors.blue[300])
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(Sizes.radiusMd),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        content,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isMe ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      if (isOptimistic)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 12,
-                                height: 12,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    isMe ? Colors.white70 : Colors.grey[600]!,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Sending...',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isMe
-                                      ? Colors.white70
-                                      : Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    _formatMessageTime(timestamp),
-                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  bool _shouldShowDateSeparator(int index) {
-    if (index == 0) return true;
-
-    final currentMsg = _messages[index];
-    final previousMsg = _messages[index - 1];
-
-    final currentTime = currentMsg['sent_at'];
-    final previousTime = previousMsg['sent_at'];
-
-    if (currentTime == null || previousTime == null) return false;
-
-    try {
-      final currentDate = DateTime.parse(currentTime);
-      final previousDate = DateTime.parse(previousTime);
-
-      return currentDate.day != previousDate.day ||
-          currentDate.month != previousDate.month ||
-          currentDate.year != previousDate.year;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Widget _buildDateSeparator(String? timestamp) {
-    if (timestamp == null) return const SizedBox.shrink();
-
-    try {
-      final date = DateTime.parse(timestamp);
-      final now = DateTime.now();
-      final diff = now.difference(date);
-
-      String dateStr;
-      if (diff.inDays == 0) {
-        dateStr = 'Today';
-      } else if (diff.inDays == 1) {
-        dateStr = 'Yesterday';
-      } else if (diff.inDays < 7) {
-        const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        dateStr = weekdays[date.weekday - 1];
-      } else {
-        dateStr = '${date.day}/${date.month}/${date.year}';
-      }
-
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              dateStr,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-      );
-    } catch (e) {
-      return const SizedBox.shrink();
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: Theme.of(context).primaryColor,
-              child: Text(
-                (widget.partner["name"] ?? "U")[0].toUpperCase(),
-                style: TextStyle(
-                  color: colors.gray1,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.partner["name"] ?? "Unknown User",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    _isConnected ? 'Online' : 'Connecting...',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _isConnected ? Colors.green : Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        title: Text(
+          widget.partner.name,
+          style: TextStyle(color: colors.textPrimary),
         ),
+        flexibleSpace: Container(color: colors.gray1),
+        backgroundColor: colors.surface,
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
             child: Center(
               child: Container(
-                width: 8,
-                height: 8,
+                width: 10,
+                height: 10,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _isConnected ? Colors.green : Colors.red,
+                  color: _isSocketConnected ? Colors.green : colors.gray6,
                 ),
               ),
             ),
@@ -480,19 +200,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
-          if (!_isConnected)
+          if (!_isSocketConnected)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(8.0),
-              color: Colors.orange,
+              padding: const EdgeInsets.all(Sizes.spaceMd),
+              color: colors.color8,
               child: Text(
-                'Connection lost. Messages may not be delivered.',
-                style: TextStyle(color: colors.gray1, fontSize: 12),
+                'Connection lost. Messages may not send.',
+                style: TextStyle(color: colors.contrast),
                 textAlign: TextAlign.center,
               ),
             ),
           Expanded(
-            child: _messages.isEmpty
+            child: messages.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -500,59 +220,116 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         Icon(
                           Icons.chat_bubble_outline,
                           size: 64,
-                          color: colors.color4,
+                          color: colors.gray8,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No messages yet',
-                          style: TextStyle(fontSize: 18, color: colors.gray6),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Start the conversation!',
-                          style: TextStyle(fontSize: 14, color: colors.gray5),
+                          "Start your conversation",
+                          style: TextStyle(fontSize: 18, color: colors.gray9),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: _messages.length,
+                    itemCount: messages.length,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
                     itemBuilder: (context, index) {
-                      return _buildMessage(_messages[index], index);
+                      final msg = messages[index];
+                      final isMe = msg.senderId == widget.currentUserId;
+                      final isPending = msg.messageId == null;
+
+                      return Align(
+                        alignment: isMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.all(12),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isMe
+                                ? (isPending ? colors.gray6 : colors.color9)
+                                : colors.gray3,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(16),
+                              topRight: const Radius.circular(16),
+                              bottomLeft: Radius.circular(isMe ? 16 : 0),
+                              bottomRight: Radius.circular(isMe ? 0 : 16),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  msg.content,
+                                  style: TextStyle(
+                                    color: isMe
+                                        ? colors.contrast
+                                        : colors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              if (isMe && isPending) ...[
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      colors.contrast.withAlpha(70),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
           ),
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              border: Border(top: BorderSide(color: colors.gray6)),
-            ),
+            color: colors.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: SafeArea(
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: _controller,
-                      decoration: const InputDecoration(
-                        hintText: "Type a message...",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                      controller: _messageController,
+                      enabled: _isSocketConnected,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
+                        hintText: _isSocketConnected
+                            ? 'Type a message...'
+                            : 'Connecting...',
+                        border: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
                       ),
-                      maxLines: null,
-                      textCapitalization: TextCapitalization.sentences,
-                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(Icons.send, color: colors.gray11),
-                    onPressed: _isConnected ? _sendMessage : null,
+                    icon: const Icon(Icons.send),
+                    onPressed: _isSocketConnected ? _sendMessage : null,
+                    color: _isSocketConnected
+                        ? colors.color9
+                        : colors.textSecondary,
                   ),
                 ],
               ),

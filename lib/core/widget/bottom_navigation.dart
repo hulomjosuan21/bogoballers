@@ -43,6 +43,7 @@ class PlayerBottomNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const PlayerHomeScreen(),
+    const ConversationListScreen(),
     Center(child: Text("Team")),
     Center(child: Text("Settings")),
     Center(child: Text("Profile")),
@@ -94,21 +95,27 @@ Obx playerBottomNavigation({
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
+          icon: Iconsax.message,
+          label: "Chats",
+          index: 1,
+          selectedIndex: controller.selectedIndex,
+        ),
+        NavigationDestinationItem(
           icon: CustomIcon.basketballTeam,
           label: "Team",
-          index: 1,
+          index: 2,
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
           icon: Iconsax.setting,
           label: "Settings",
-          index: 2,
+          index: 3,
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
           icon: Iconsax.user,
           label: "Profile",
-          index: 3,
+          index: 4,
           selectedIndex: controller.selectedIndex,
         ),
       ],
@@ -158,7 +165,7 @@ Obx teamManagerBottomNavigation({
         ),
         NavigationDestinationItem(
           icon: Iconsax.message,
-          label: "Message",
+          label: "Chats",
           index: 2,
           selectedIndex: controller.selectedIndex,
         ),

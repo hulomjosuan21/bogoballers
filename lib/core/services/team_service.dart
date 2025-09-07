@@ -11,7 +11,7 @@ class TeamService {
     final entity = await getEntityCredentialsFromStorage();
     final user_id = entity.userId;
     final api = DioClient().client;
-    final Response<List> response = await api.get('/team/all?user_id=$user_id');
+    final Response<List> response = await api.get('/team/all/$user_id');
 
     return (response.data ?? [])
         .map((e) => TeamModel.fromMap(e as Map<String, dynamic>))
