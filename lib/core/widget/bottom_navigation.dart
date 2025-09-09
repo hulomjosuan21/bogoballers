@@ -1,5 +1,4 @@
 import 'package:bogoballers/core/constants/size.dart';
-import 'package:bogoballers/core/widget/custom_icon.dart';
 import 'package:bogoballers/screens/conversation_list_screen.dart';
 import 'package:bogoballers/screens/player/player_home_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_home_screen.dart';
@@ -44,8 +43,6 @@ class PlayerBottomNavigationController extends GetxController {
   final List<Widget> screens = [
     const PlayerHomeScreen(),
     const ConversationListScreen(),
-    Center(child: Text("Team")),
-    Center(child: Text("Settings")),
     Center(child: Text("Profile")),
   ];
 }
@@ -101,21 +98,9 @@ Obx playerBottomNavigation({
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
-          icon: CustomIcon.basketballTeam,
-          label: "Team",
-          index: 2,
-          selectedIndex: controller.selectedIndex,
-        ),
-        NavigationDestinationItem(
-          icon: Iconsax.setting,
-          label: "Settings",
-          index: 3,
-          selectedIndex: controller.selectedIndex,
-        ),
-        NavigationDestinationItem(
           icon: Iconsax.user,
-          label: "Profile",
-          index: 4,
+          label: "Me",
+          index: 2,
           selectedIndex: controller.selectedIndex,
         ),
       ],

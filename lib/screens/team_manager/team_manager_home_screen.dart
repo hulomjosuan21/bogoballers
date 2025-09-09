@@ -2,6 +2,7 @@ import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/providers/team_manager_provider.dart';
 import 'package:bogoballers/core/services/test_service.dart';
+import 'package:bogoballers/screens/notification_screen.dart';
 import 'package:bogoballers/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,17 +28,51 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
           appBar: AppBar(
             title: Text(teamManager.display_name),
             actions: [
-              PopupMenuButton(
-                icon: const Icon(Icons.more_vert),
-                itemBuilder: (BuildContext context) => [
-                  PopupMenuItem(onTap: testWriteID, child: const Text('Test')),
-                  PopupMenuItem(
-                    onTap: () => logout(context),
-                    child: const Text('Logout'),
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationScreen(),
+                    ),
+                  );
+                },
               ),
             ],
+          ),
+          drawer: Drawer(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  child: Text(
+                    teamManager.display_name,
+                    style: const TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.bug_report),
+                  title: const Text("Test"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    testWriteID();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text("Logout"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    logout(context);
+                  },
+                ),
+              ],
+            ),
           ),
           body: Column(
             children: [
@@ -61,6 +96,7 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
                   ),
                 ),
               ),
+              // 👇 Add more home content here
             ],
           ),
         );

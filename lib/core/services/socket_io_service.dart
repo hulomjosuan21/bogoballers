@@ -50,7 +50,6 @@ class SocketService {
         debugPrint('SocketService: connected');
         _isConnected = true;
         if (_currentUserId != null) {
-          // Use join_user_room instead of join to match backend
           socket!.emit('join_user_room', {'user_id': _currentUserId});
           _reregisterCallbacks();
         }
@@ -67,7 +66,6 @@ class SocketService {
         if (_currentUserId != null) {
           socket!.emit('join_user_room', {'user_id': _currentUserId});
           _reregisterCallbacks();
-          getConversations(_currentUserId!);
         }
       });
 
@@ -80,7 +78,6 @@ class SocketService {
         debugPrint('SocketService: error: $err');
       });
 
-      // Listen for room join confirmation
       socket!.on('joined_room', (data) {
         debugPrint('SocketService: Successfully joined room: $data');
       });
@@ -99,176 +96,6 @@ class SocketService {
     });
   }
 
-  void joinUserRoom(String userId) {
-    if (_isConnected && socket != null && socket!.connected) {
-      debugPrint('🏠 Joining user room for: $userId');
-      socket!.emit('join_user_room', {'user_id': userId});
-    }
-  }
-
-  void register(String userId) {
-    if (_isConnected && socket != null && socket!.connected) {
-      socket!.emit('register', {'user_id': userId});
-    }
-  }
-
-  void getConversations(String userId) {
-    if (_isConnected && socket != null && socket!.connected) {
-      debugPrint('🔄 Requesting conversations for user: $userId');
-      socket!.emit('get_conversations', {'user_id': userId});
-    }
-  }
-
-  void sendMessage(Map<String, dynamic> message) {
-    if (_isConnected && socket != null && socket!.connected) {
-      debugPrint('📤 Sending message: $message');
-      socket!.emit('send_message', message);
-    }
-  }
-
-  Map<String, dynamic>? _extractMessage(dynamic raw) {
-    try {
-      if (raw == null) return null;
-      if (raw is Map) {
-        // Handle direct message format
-        if (raw.containsKey('message_id') || raw.containsKey('sender_id')) {
-          return Map<String, dynamic>.from(raw);
-        }
-        // Handle nested message format
-        if (raw.containsKey('message') && raw['message'] is Map) {
-          return Map<String, dynamic>.from(raw['message']);
-        }
-        if (raw.containsKey('data') && raw['data'] is Map) {
-          return Map<String, dynamic>.from(raw['data']);
-        }
-        // Handle wrapped message format
-        if (raw.containsKey('type') &&
-            raw.containsKey('message') &&
-            raw['message'] is Map) {
-          return Map<String, dynamic>.from(raw['message']);
-        }
-        // Handle message_sent response format
-        if (raw.containsKey('status') && raw.containsKey('original_data')) {
-          return Map<String, dynamic>.from(raw['original_data']);
-        }
-      }
-    } catch (e) {
-      debugPrint('SocketService._extractMessage error: $e');
-    }
-    return null;
-  }
-
-  void onNewMessage(void Function(Map<String, dynamic>) callback) {
-    const event = 'new_message';
-
-    void socketCallback(dynamic data) {
-      debugPrint('📨 Raw new_message data: $data');
-      final msg = _extractMessage(data);
-      if (msg != null) {
-        debugPrint('✅ Processed new_message: $msg');
-        callback(msg);
-      } else {
-        // Try to handle direct format
-        try {
-          if (data is Map<String, dynamic>) {
-            debugPrint('✅ Direct format new_message: $data');
-            callback(data);
-          } else {
-            debugPrint('⚠️ Could not extract message from: $data');
-          }
-        } catch (e) {
-          debugPrint('⚠️ Error processing new_message: $e');
-        }
-      }
-    }
-
-    _eventCallbacks[event] = socketCallback;
-    socket?.off(event);
-    socket?.on(event, socketCallback);
-  }
-
-  void onConversations(void Function(dynamic) callback) {
-    const event = 'conversations';
-
-    void socketCallback(dynamic data) {
-      debugPrint('📋 Raw conversations data type: ${data.runtimeType}');
-      debugPrint(
-        '📋 Raw conversations data: ${data.toString().length > 500 ? data.toString().substring(0, 500) + "..." : data}',
-      );
-      callback(data);
-    }
-
-    _eventCallbacks[event] = socketCallback;
-    socket?.off(event);
-    socket?.on(event, socketCallback);
-  }
-
-  void onMessageSent(void Function(Map<String, dynamic>) callback) {
-    const event = 'message_sent';
-
-    void socketCallback(dynamic data) {
-      debugPrint('✅ Raw message_sent data: $data');
-
-      // Handle different message_sent formats
-      try {
-        if (data is Map<String, dynamic>) {
-          // If it's a direct message format with message_id, sender_id, etc.
-          if (data.containsKey('message_id') && data.containsKey('sender_id')) {
-            callback(data);
-            return;
-          }
-
-          // Handle service response format with status
-          if (data.containsKey('status') && data['status'] == 'success') {
-            if (data.containsKey('original_data')) {
-              // This is from socket event, but we need the actual message data
-              // The real message will come through new_message event
-              return;
-            }
-          }
-        }
-
-        // Try to extract message
-        final msg = _extractMessage(data);
-        if (msg != null) {
-          callback(msg);
-        }
-      } catch (e) {
-        debugPrint('⚠️ Error processing message_sent: $e');
-      }
-    }
-
-    _eventCallbacks[event] = socketCallback;
-    socket?.off(event);
-    socket?.on(event, socketCallback);
-  }
-
-  // Add conversation_update listener for real-time conversation updates
-  void onConversationUpdate(void Function(Map<String, dynamic>) callback) {
-    const event = 'conversation_update';
-
-    void socketCallback(dynamic data) {
-      debugPrint('🔄 Raw conversation_update data: $data');
-      try {
-        if (data is Map<String, dynamic>) {
-          callback(data);
-        } else {
-          final msg = _extractMessage(data);
-          if (msg != null) {
-            callback(msg);
-          }
-        }
-      } catch (e) {
-        debugPrint('⚠️ Error processing conversation_update: $e');
-      }
-    }
-
-    _eventCallbacks[event] = socketCallback;
-    socket?.off(event);
-    socket?.on(event, socketCallback);
-  }
-
-  // Generic on method for custom events
   void on(String event, void Function(dynamic) callback) {
     void socketCallback(dynamic data) {
       debugPrint('🔗 Event $event received: $data');

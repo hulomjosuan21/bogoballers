@@ -91,7 +91,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         teamId: result['teamId'],
         playerId: widget.result.player_id,
         status: "Invited",
-        teamLogoUrl: result['teamLogoUrl'],
       );
       final _ = await ref.refresh(teamsProvider.future);
       if (mounted) {

@@ -1,6 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/screens/notification_screen.dart';
 import 'package:bogoballers/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -12,20 +13,35 @@ class PlayerHomeScreen extends StatelessWidget {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home"),
-        centerTitle: true,
         actions: [
-          PopupMenuButton(
-            icon: Icon(Icons.more_vert),
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem(onTap: () {}, child: Text('Test')),
-              PopupMenuItem(
-                onTap: () => logout(context),
-                child: Text('Logout'),
-              ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
+            },
           ),
         ],
+      ),
+      drawer: Drawer(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            SizedBox(height: Sizes.spaceLg),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Logout"),
+              onTap: () {
+                Navigator.pop(context);
+                logout(context);
+              },
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: [

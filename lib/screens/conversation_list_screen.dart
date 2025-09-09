@@ -7,6 +7,7 @@ import 'package:bogoballers/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/services/socket_service_messages.dart';
 
 class ConversationListScreen extends StatefulWidget {
   const ConversationListScreen({super.key});

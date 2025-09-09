@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 class ErrorHandler {
-  static String getErrorMessage(Object error, {bool devMode = true}) {
+  static String getErrorMessage(Object error, {bool devMode = false}) {
     if (devMode) return error.toString();
 
     if (error is DioException) {

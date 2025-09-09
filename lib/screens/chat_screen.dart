@@ -5,6 +5,7 @@ import 'package:bogoballers/core/services/socket_io_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/services/socket_service_messages.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
