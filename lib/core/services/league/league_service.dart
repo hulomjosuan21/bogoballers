@@ -5,7 +5,7 @@ class LeagueService {
   static Future<Response> registerTeam(Map<String, dynamic> data) async {
     final api = DioClient().client;
 
-    final response = await api.post('/league-team/register-team', data: data);
+    final response = await api.post('/league-team/register', data: data);
     return response;
   }
 
