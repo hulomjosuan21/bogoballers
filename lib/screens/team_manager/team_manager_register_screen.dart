@@ -1,8 +1,5 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/display_name_generator.dart';
-import 'package:bogoballers/core/models/team_manager.dart';
 import 'package:bogoballers/core/services/team_manager_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/custom_exceptions.dart';
@@ -166,17 +163,17 @@ class _TeamManagerRegisterScreenState extends State<TeamManagerRegisterScreen> {
 
       final messaging = FirebaseMessaging.instance;
 
-      String? fcm_token = await messaging.getToken();
+      String? fcmToken = await messaging.getToken();
 
-      final user = CreateTeamManager(
-        email: emailController.text,
-        contact_number: phoneNumber!,
-        password_str: passwordController.text,
-        display_name: displayNameController.text,
-        fcm_token: fcm_token,
-      );
+      Map<String, String> data = {
+        'email': emailController.text,
+        'contact_number': phoneNumber!,
+        'password_str': passwordController.text,
+        'display_name': displayNameController.text,
+        'fcm_token': fcmToken!,
+      };
 
-      final response = await TeamManagerServices.createNewTeamManager(user);
+      final response = await TeamManagerServices.createNewTeamManager(data);
 
       if (mounted) {
         showAppSnackbar(

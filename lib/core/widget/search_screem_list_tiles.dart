@@ -1,7 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
-import 'package:bogoballers/core/models/league.dart';
 import 'package:bogoballers/core/models/league_admin_model.dart';
+import 'package:bogoballers/core/models/league_model.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/screens/league_admin_screen.dart';
@@ -17,12 +17,12 @@ abstract class BaseSearchResultScreen<T> {
 }
 
 class PlayerSearchResultListTile extends StatelessWidget
-    implements BaseSearchResultScreen<PlayerModel> {
+    implements BaseSearchResultScreen<Player> {
   @override
   final List<Permission> permissions;
 
   @override
-  final PlayerModel result;
+  final Player result;
 
   const PlayerSearchResultListTile({
     super.key,
@@ -36,7 +36,7 @@ class PlayerSearchResultListTile extends StatelessWidget
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(Sizes.radiusSm),
         child: Image.network(
-          result.profile_image_url,
+          result.profileImageUrl,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
@@ -48,7 +48,7 @@ class PlayerSearchResultListTile extends StatelessWidget
             child: Text(
               maxLines: 1,
               overflow: TextOverflow.fade,
-              result.full_name,
+              result.fullName,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),
@@ -68,9 +68,9 @@ class PlayerSearchResultListTile extends StatelessWidget
 }
 
 class TeamSearchResultListTile extends StatelessWidget
-    implements BaseSearchResultScreen<TeamModelForSearchResult> {
+    implements BaseSearchResultScreen<Team> {
   @override
-  final TeamModelForSearchResult result;
+  final Team result;
   @override
   final List<Permission> permissions;
 
@@ -86,7 +86,7 @@ class TeamSearchResultListTile extends StatelessWidget
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(Sizes.radiusSm),
         child: Image.network(
-          result.team_logo_url,
+          result.teamLogoUrl,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
@@ -98,7 +98,7 @@ class TeamSearchResultListTile extends StatelessWidget
             child: Text(
               maxLines: 1,
               overflow: TextOverflow.fade,
-              result.team_name,
+              result.teamName,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),
@@ -118,9 +118,9 @@ class TeamSearchResultListTile extends StatelessWidget
 }
 
 class LeagueAdministratorSearchResultListTile extends StatelessWidget
-    implements BaseSearchResultScreen<LeagueAdminModel> {
+    implements BaseSearchResultScreen<LeagueAdministrator> {
   @override
-  final LeagueAdminModel result;
+  final LeagueAdministrator result;
   @override
   final List<Permission> permissions;
 
@@ -136,7 +136,7 @@ class LeagueAdministratorSearchResultListTile extends StatelessWidget
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(Sizes.radiusSm),
         child: Image.network(
-          result.organization_logo_url,
+          result.organizationLogoUrl,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
@@ -148,7 +148,7 @@ class LeagueAdministratorSearchResultListTile extends StatelessWidget
             child: Text(
               maxLines: 1,
               overflow: TextOverflow.fade,
-              result.organization_name,
+              result.organizationName,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),
@@ -170,9 +170,9 @@ class LeagueAdministratorSearchResultListTile extends StatelessWidget
 }
 
 class LeagueSearchResultListTile extends StatelessWidget
-    implements BaseSearchResultScreen<LeagueModel> {
+    implements BaseSearchResultScreen<League> {
   @override
-  final LeagueModel result;
+  final League result;
   @override
   final List<Permission> permissions;
 
@@ -188,7 +188,7 @@ class LeagueSearchResultListTile extends StatelessWidget
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(Sizes.radiusSm),
         child: Image.network(
-          result.banner_url,
+          result.bannerUrl,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
@@ -198,7 +198,7 @@ class LeagueSearchResultListTile extends StatelessWidget
         children: [
           Expanded(
             child: Text(
-              result.league_title,
+              result.leagueTitle,
               maxLines: 2,
               overflow: TextOverflow.fade,
               softWrap: true,

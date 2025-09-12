@@ -1,7 +1,6 @@
 import 'package:bogoballers/core/helpers/api_reponse.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:bogoballers/core/services/secure_storage_service.dart';
-import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class EntityService {
@@ -37,7 +36,9 @@ class EntityService {
     );
   }
 
-  static Future<ApiResponse<void>> login({required FormData u}) async {
+  static Future<ApiResponse<void>> login({
+    required Map<String, String> u,
+  }) async {
     final api = DioClient().client;
 
     final response = await api.post('/entity/login', data: u);

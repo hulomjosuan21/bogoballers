@@ -8,7 +8,7 @@ import 'package:bogoballers/core/theme/theme_extensions.dart';
 class TeamManagerTeamScreen extends StatefulWidget {
   const TeamManagerTeamScreen({super.key, required this.team});
 
-  final TeamModel team;
+  final Team team;
 
   @override
   State<TeamManagerTeamScreen> createState() => _TeamManagerTeamScreenState();
@@ -24,7 +24,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text(widget.team.team_name),
+          title: Text(widget.team.teamName),
           actions: [
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -34,7 +34,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => PlayerPendingRequestScreen(
-                          players: widget.team.pending_players,
+                          players: widget.team.pendingPlayers,
                         ),
                       ),
                     );
@@ -64,7 +64,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: Image.network(
-                        widget.team.team_logo_url,
+                        widget.team.teamLogoUrl,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -78,7 +78,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   StatCell(
-                    value: widget.team.total_losses.toString(),
+                    value: widget.team.totalDraws.toString(),
                     label: 'Losses',
                   ),
                   SizedBox(
@@ -90,7 +90,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                     ),
                   ),
                   StatCell(
-                    value: widget.team.total_draws.toString(),
+                    value: widget.team.totalDraws.toString(),
                     label: 'Draws',
                   ),
                   SizedBox(
@@ -102,7 +102,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                     ),
                   ),
                   StatCell(
-                    value: widget.team.total_points.toString(),
+                    value: widget.team.totalPoints.toString(),
                     label: 'Points',
                   ),
                 ],
@@ -131,28 +131,28 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 child: TabBarView(
                   children: [
                     ListView.builder(
-                      itemCount: widget.team.accepted_players.length,
+                      itemCount: widget.team.acceptedPlayers.length,
                       itemBuilder: (context, index) {
-                        final player = widget.team.accepted_players[index];
+                        final player = widget.team.acceptedPlayers[index];
                         return ListTile(
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(Sizes.radiusSm),
                             child: Image.network(
-                              widget.team.team_logo_url,
+                              widget.team.teamLogoUrl,
                               width: 48,
                               height: 48,
                               fit: BoxFit.cover,
                             ),
                           ),
                           title: Text(
-                            player.full_name,
+                            player.fullName,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
                           ),
                           subtitle: Text(
-                            "${player.jersey_name} | #${player.jersey_number.toStringAsFixed(0)}",
+                            "${player.jerseyName} | #${player.jerseyNumber.toStringAsFixed(0)}",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: colors.gray8, fontSize: 11),
@@ -171,28 +171,28 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                     ),
 
                     ListView.builder(
-                      itemCount: widget.team.invited_players.length,
+                      itemCount: widget.team.invitedPlayers.length,
                       itemBuilder: (context, index) {
-                        final player = widget.team.invited_players[index];
+                        final player = widget.team.invitedPlayers[index];
                         return ListTile(
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(Sizes.radiusSm),
                             child: Image.network(
-                              player.profile_image_url,
+                              player.profileImageUrl,
                               width: 48,
                               height: 48,
                               fit: BoxFit.cover,
                             ),
                           ),
                           title: Text(
-                            player.full_name,
+                            player.fullName,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
                           ),
                           subtitle: Text(
-                            "${player.jersey_name} | #${player.jersey_number.toStringAsFixed(0)}",
+                            "${player.jerseyName} | #${player.jerseyNumber.toStringAsFixed(0)}",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: colors.gray8, fontSize: 11),
@@ -242,7 +242,7 @@ class StatCell extends StatelessWidget {
 }
 
 class PlayerPendingRequestScreen extends StatelessWidget {
-  final List<PlayerTeamModel> players;
+  final List<PlayerTeam> players;
   const PlayerPendingRequestScreen({super.key, required this.players});
 
   @override
@@ -258,18 +258,18 @@ class PlayerPendingRequestScreen extends StatelessWidget {
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(Sizes.radiusSm),
               child: Image.network(
-                player.profile_image_url,
+                player.profileImageUrl,
                 width: 48,
                 height: 48,
                 fit: BoxFit.cover,
               ),
             ),
             title: Text(
-              player.full_name,
+              player.fullName,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
             subtitle: Text(
-              "${player.jersey_name} | #${player.jersey_number.toStringAsFixed(0)}",
+              "${player.jerseyName} | #${player.jerseyNumber.toStringAsFixed(0)}",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: colors.gray8, fontSize: 11),

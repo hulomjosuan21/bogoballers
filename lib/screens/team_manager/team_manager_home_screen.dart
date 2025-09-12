@@ -26,7 +26,7 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
       data: (teamManager) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(teamManager.display_name),
+            title: Text(teamManager.displayName ?? "No data"),
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications),
@@ -51,7 +51,7 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
                     color: Theme.of(context).primaryColor,
                   ),
                   child: Text(
-                    teamManager.display_name,
+                    teamManager.displayName ?? "No data",
                     style: const TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),

@@ -9,12 +9,12 @@ class PlayerTeamScreen extends StatelessWidget {
   });
 
   final bool onTeamScreen;
-  final PlayerTeamModel player;
+  final PlayerTeam player;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text(player.full_name)),
+      appBar: AppBar(centerTitle: true, title: Text(player.fullName)),
     );
   }
 }

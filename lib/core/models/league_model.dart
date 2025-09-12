@@ -1,186 +1,436 @@
-// ignore_for_file: non_constant_identifier_names
+import 'package:bogoballers/core/models/category.dart';
+import 'package:bogoballers/core/models/league_admin_model.dart';
 
-class LeagueCategoryModel {
-  late String category_id;
-  late String league_id;
+class LeagueOfficial {
+  final String fullName;
+  final String role;
+  final String contactInfo;
+  final String photo;
 
-  String category_name;
-
-  String category_format;
-  String stage;
-  int max_team;
-  double entrance_fee_amount;
-  late bool accept_teams;
-
-  late DateTime created_at;
-  late DateTime updated_at;
-
-  LeagueCategoryModel({
-    required this.category_id,
-    required this.league_id,
-    required this.category_name,
-    required this.category_format,
-    required this.stage,
-    required this.max_team,
-    required this.created_at,
-    required this.updated_at,
-    required this.entrance_fee_amount,
-    required this.accept_teams,
+  LeagueOfficial({
+    required this.fullName,
+    required this.role,
+    required this.contactInfo,
+    required this.photo,
   });
 
-  LeagueCategoryModel.create({
-    required this.category_name,
-    required this.category_format,
-    this.stage = "Group Stage",
-    required this.max_team,
-    this.entrance_fee_amount = 0.0,
-  });
+  factory LeagueOfficial.fromMap(Map<String, dynamic> map) {
+    return LeagueOfficial(
+      fullName: map['full_name'] as String,
+      role: map['role'] as String,
+      contactInfo: map['contact_info'] as String,
+      photo: map['photo'] as String,
+    );
+  }
 
-  Map<String, dynamic> toJsonForCreation() {
+  Map<String, dynamic> toMap() {
     return {
-      'category_name': category_name,
-      'category_format': category_format,
-      'stage': stage,
-      'max_team': max_team,
-      'entrance_fee_amount': entrance_fee_amount,
+      'full_name': fullName,
+      'role': role,
+      'contact_info': contactInfo,
+      'photo': photo,
     };
-  }
-
-  factory LeagueCategoryModel.fromJson(Map<String, dynamic> json) {
-    return LeagueCategoryModel(
-      category_id: json['category_id'],
-      league_id: json['league_id'],
-      category_name: json['category_name'],
-      category_format: json['category_format'],
-      entrance_fee_amount: (json['entrance_fee_amount'] as num).toDouble(),
-      stage: json['stage'],
-      max_team: json['max_team'],
-      created_at: DateTime.parse(json['created_at']),
-      updated_at: DateTime.parse(json['updated_at']),
-      accept_teams: json['accept_teams'],
-    );
-  }
-
-  LeagueCategoryModel copyWith({
-    String? category_id,
-    String? league_id,
-    String? category_name,
-    String? category_format,
-    String? stage,
-    int? max_team,
-    List<LeagueTeamModel>? category_teams,
-    DateTime? created_at,
-    DateTime? updated_at,
-  }) {
-    return LeagueCategoryModel(
-      category_id: category_id ?? this.category_id,
-      league_id: league_id ?? this.league_id,
-      category_name: category_name ?? this.category_name,
-      category_format: category_format ?? this.category_format,
-      stage: stage ?? this.stage,
-      max_team: max_team ?? this.max_team,
-      created_at: created_at ?? this.created_at,
-      updated_at: updated_at ?? this.updated_at,
-      entrance_fee_amount: entrance_fee_amount,
-      accept_teams: accept_teams,
-    );
   }
 }
 
-class LeagueTeamModel {
-  late String league_team_id;
-  late String team_id;
-  late String league_id;
-  late String category_id;
+class LeagueReferee {
+  final String fullName;
+  final String contactInfo;
+  final String photo;
+  final bool isAvailable;
 
-  int wins;
-  int losses;
-  int draws;
-  int points;
-
-  DateTime? created_at;
-  DateTime? updated_at;
-
-  LeagueTeamModel({
-    required this.league_team_id,
-    required this.team_id,
-    required this.league_id,
-    required this.category_id,
-    required this.wins,
-    required this.losses,
-    required this.draws,
-    required this.points,
-    this.created_at,
-    this.updated_at,
+  LeagueReferee({
+    required this.fullName,
+    required this.contactInfo,
+    required this.photo,
+    required this.isAvailable,
   });
 
-  LeagueTeamModel.create({
-    required this.team_id,
-    required this.league_id,
-    required this.category_id,
-    required this.wins,
-    required this.losses,
-    required this.draws,
-    required this.points,
-  });
-
-  factory LeagueTeamModel.fromJson(Map<String, dynamic> json) {
-    return LeagueTeamModel(
-      league_team_id: json['league_team_id'],
-      team_id: json['team_id'],
-      league_id: json['league_id'],
-      category_id: json['category_id'],
-      wins: json['wins'],
-      losses: json['losses'],
-      draws: json['draws'],
-      points: json['points'],
-      created_at: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
-      updated_at: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
-          : null,
+  factory LeagueReferee.fromMap(Map<String, dynamic> map) {
+    return LeagueReferee(
+      fullName: map['full_name'] as String,
+      contactInfo: map['contact_info'] as String,
+      photo: map['photo'] as String,
+      isAvailable: map['is_available'] as bool,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'league_team_id': league_team_id,
-      'team_id': team_id,
-      'league_id': league_id,
-      'category_id': category_id,
-      'wins': wins,
-      'losses': losses,
-      'draws': draws,
-      'points': points,
-      'created_at': created_at?.toIso8601String(),
-      'updated_at': updated_at?.toIso8601String(),
+      'full_name': fullName,
+      'contact_info': contactInfo,
+      'photo': photo,
+      'is_available': isAvailable,
     };
   }
+}
 
-  LeagueTeamModel copyWith({
-    String? league_team_id,
-    String? team_id,
-    String? league_id,
-    String? category_id,
-    int? wins,
-    int? losses,
-    int? draws,
-    int? points,
-    DateTime? created_at,
-    DateTime? updated_at,
-  }) {
-    return LeagueTeamModel(
-      league_team_id: league_team_id ?? this.league_team_id,
-      team_id: team_id ?? this.team_id,
-      league_id: league_id ?? this.league_id,
-      category_id: category_id ?? this.category_id,
-      wins: wins ?? this.wins,
-      losses: losses ?? this.losses,
-      draws: draws ?? this.draws,
-      points: points ?? this.points,
-      created_at: created_at ?? this.created_at,
-      updated_at: updated_at ?? this.updated_at,
+class LeagueAffiliate {
+  final String name;
+  final String value;
+  final String image;
+  final String contactInfo;
+
+  LeagueAffiliate({
+    required this.name,
+    required this.value,
+    required this.image,
+    required this.contactInfo,
+  });
+
+  factory LeagueAffiliate.fromMap(Map<String, dynamic> map) {
+    return LeagueAffiliate(
+      name: map['name'] as String,
+      value: map['value'] as String,
+      image: map['image'] as String,
+      contactInfo: map['contact_info'] as String,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'value': value,
+      'image': image,
+      'contact_info': contactInfo,
+    };
+  }
+}
+
+class LeagueCourt {
+  final String name;
+  final String location;
+  final bool isAvailable;
+
+  LeagueCourt({
+    required this.name,
+    required this.location,
+    required this.isAvailable,
+  });
+
+  factory LeagueCourt.fromMap(Map<String, dynamic> map) {
+    return LeagueCourt(
+      name: map['name'] as String,
+      location: map['location'] as String,
+      isAvailable: map['is_available'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'location': location, 'is_available': isAvailable};
+  }
+}
+
+class LeagueResource {
+  final List<LeagueCourt> leagueCourts;
+  final List<LeagueOfficial> leagueOfficials;
+  final List<LeagueReferee> leagueReferees;
+  final List<LeagueAffiliate> leagueAffiliates;
+
+  LeagueResource({
+    required this.leagueCourts,
+    required this.leagueOfficials,
+    required this.leagueReferees,
+    required this.leagueAffiliates,
+  });
+
+  factory LeagueResource.fromMap(Map<String, dynamic> map) {
+    return LeagueResource(
+      leagueCourts: (map['league_courts'] as List)
+          .map((e) => LeagueCourt.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueOfficials: (map['league_officials'] as List)
+          .map((e) => LeagueOfficial.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueReferees: (map['league_referees'] as List)
+          .map((e) => LeagueReferee.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueAffiliates: (map['league_affiliates'] as List)
+          .map((e) => LeagueAffiliate.fromMap(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'league_courts': leagueCourts.map((e) => e.toMap()).toList(),
+      'league_officials': leagueOfficials.map((e) => e.toMap()).toList(),
+      'league_referees': leagueReferees.map((e) => e.toMap()).toList(),
+      'league_affiliates': leagueAffiliates.map((e) => e.toMap()).toList(),
+    };
+  }
+}
+
+class LeagueCategory extends Category {
+  final String leagueCategoryId;
+  final String leagueId;
+  final int maxTeam;
+  final bool acceptTeams;
+  final String leagueCategoryCreatedAt;
+  final String leagueCategoryUpdatedAt;
+  final List<LeagueCategoryRound> rounds;
+
+  LeagueCategory({
+    required this.leagueCategoryId,
+    required this.leagueId,
+    required this.maxTeam,
+    required this.acceptTeams,
+    required this.leagueCategoryCreatedAt,
+    required this.leagueCategoryUpdatedAt,
+    required this.rounds,
+    required super.categoryId,
+    required super.categoryName,
+    required super.leagueAdministratorId,
+    required super.checkPlayerAge,
+    super.playerMinAge,
+    super.playerMaxAge,
+    required super.playerGender,
+    required super.checkAddress,
+    super.allowedAddress,
+    required super.allowGuestTeam,
+    required super.allowGuestPlayer,
+    required super.guestPlayerFeeAmount,
+    required super.teamEntranceFeeAmount,
+    required super.requiresValidDocument,
+    super.allowedDocuments,
+    super.documentValidUntil,
+    required super.categoryCreatedAt,
+    required super.categoryUpdatedAt,
+  });
+
+  factory LeagueCategory.fromMap(Map<String, dynamic> map) {
+    return LeagueCategory(
+      leagueCategoryId: map['league_category_id'] as String,
+      leagueId: map['league_id'] as String,
+      maxTeam: map['max_team'] as int,
+      acceptTeams: map['accept_teams'] as bool,
+      leagueCategoryCreatedAt: map['league_category_created_at'] as String,
+      leagueCategoryUpdatedAt: map['league_category_updated_at'] as String,
+      rounds: (map['rounds'] as List)
+          .map((e) => LeagueCategoryRound.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      categoryId: map['category_id'] as String,
+      categoryName: map['category_name'] as String,
+      leagueAdministratorId: map['league_administrator_id'] as String,
+      checkPlayerAge: map['check_player_age'] as bool,
+      playerMinAge: map['player_min_age'] as int?,
+      playerMaxAge: map['player_max_age'] as int?,
+      playerGender: map['player_gender'] as String,
+      checkAddress: map['check_address'] as bool,
+      allowedAddress: map['allowed_address'] as String?,
+      allowGuestTeam: map['allow_guest_team'] as bool,
+      allowGuestPlayer: map['allow_guest_player'] as bool,
+      guestPlayerFeeAmount: map['guest_player_fee_amount'] as int,
+      teamEntranceFeeAmount: map['team_entrance_fee_amount'] as int,
+      requiresValidDocument: map['requires_valid_document'] as bool,
+      allowedDocuments: map['allowed_documents'] != null
+          ? List<String>.from(map['allowed_documents'] as List)
+          : null,
+      documentValidUntil: map['document_valid_until'] as String?,
+      categoryCreatedAt: map['category_created_at'] as String,
+      categoryUpdatedAt: map['category_updated_at'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      'league_category_id': leagueCategoryId,
+      'league_id': leagueId,
+      'max_team': maxTeam,
+      'accept_teams': acceptTeams,
+      'league_category_created_at': leagueCategoryCreatedAt,
+      'league_category_updated_at': leagueCategoryUpdatedAt,
+      'rounds': rounds.map((e) => e.toMap()).toList(),
+    };
+  }
+}
+
+class League extends LeagueResource {
+  final String leagueId;
+  final String publicLeagueId;
+  final String leagueAdministratorId;
+  final String leagueTitle;
+  final String leagueDescription;
+  final String leagueAddress;
+  final int leagueBudget;
+  final String registrationDeadline;
+  final String openingDate;
+  final List<String> leagueSchedule;
+  final String bannerUrl;
+  final String status;
+  final int seasonYear;
+  final List<String> sportsmanshipRules;
+  final String leagueCreatedAt;
+  final String leagueUpdatedAt;
+  final LeagueAdministrator creator;
+  final List<LeagueCategory> leagueCategories;
+
+  League({
+    required this.leagueId,
+    required this.publicLeagueId,
+    required this.leagueAdministratorId,
+    required this.leagueTitle,
+    required this.leagueDescription,
+    required this.leagueAddress,
+    required this.leagueBudget,
+    required this.registrationDeadline,
+    required this.openingDate,
+    required this.leagueSchedule,
+    required this.bannerUrl,
+    required this.status,
+    required this.seasonYear,
+    required this.sportsmanshipRules,
+    required this.leagueCreatedAt,
+    required this.leagueUpdatedAt,
+    required this.creator,
+    required this.leagueCategories,
+    required super.leagueCourts,
+    required super.leagueOfficials,
+    required super.leagueReferees,
+    required super.leagueAffiliates,
+  });
+
+  factory League.fromMap(Map<String, dynamic> map) {
+    return League(
+      leagueId: map['league_id'] as String,
+      publicLeagueId: map['public_league_id'] as String,
+      leagueAdministratorId: map['league_administrator_id'] as String,
+      leagueTitle: map['league_title'] as String,
+      leagueDescription: map['league_description'] as String,
+      leagueAddress: map['league_address'] as String,
+      leagueBudget: map['league_budget'] as int,
+      registrationDeadline: map['registration_deadline'] as String,
+      openingDate: map['opening_date'] as String,
+      leagueSchedule: List<String>.from(map['league_schedule'] as List),
+      bannerUrl: map['banner_url'] as String,
+      status: map['status'] as String,
+      seasonYear: map['season_year'] as int,
+      sportsmanshipRules: List<String>.from(map['sportsmanship_rules'] as List),
+      leagueCreatedAt: map['league_created_at'] as String,
+      leagueUpdatedAt: map['league_updated_at'] as String,
+      creator: LeagueAdministrator.fromMap(
+        map['creator'] as Map<String, dynamic>,
+      ),
+      leagueCategories: (map['league_categories'] as List)
+          .map((e) => LeagueCategory.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueCourts: (map['league_courts'] as List)
+          .map((e) => LeagueCourt.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueOfficials: (map['league_officials'] as List)
+          .map((e) => LeagueOfficial.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueReferees: (map['league_referees'] as List)
+          .map((e) => LeagueReferee.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      leagueAffiliates: (map['league_affiliates'] as List)
+          .map((e) => LeagueAffiliate.fromMap(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      'league_id': leagueId,
+      'public_league_id': publicLeagueId,
+      'league_administrator_id': leagueAdministratorId,
+      'league_title': leagueTitle,
+      'league_description': leagueDescription,
+      'league_address': leagueAddress,
+      'league_budget': leagueBudget,
+      'registration_deadline': registrationDeadline,
+      'opening_date': openingDate,
+      'league_schedule': leagueSchedule,
+      'banner_url': bannerUrl,
+      'status': status,
+      'season_year': seasonYear,
+      'sportsmanship_rules': sportsmanshipRules,
+      'league_created_at': leagueCreatedAt,
+      'league_updated_at': leagueUpdatedAt,
+      'creator': creator.toMap(),
+      'league_categories': leagueCategories.map((e) => e.toMap()).toList(),
+    };
+  }
+}
+
+class LeagueCategoryRound {
+  final String roundId;
+  final String publicRoundId;
+  final String leagueCategoryId;
+  final String roundName;
+  final int roundOrder;
+  final String roundStatus;
+  final bool matchesGenerated;
+  final String? formatType;
+  final String? roundFormat;
+  final Map<String, dynamic>? formatConfig;
+  final Map<String, dynamic>? formatOptions;
+  final Map<String, int> position;
+  final String? nextRoundId;
+  final String leagueCategoryRoundCreatedAt;
+  final String leagueCategoryRoundUpdatedAt;
+
+  LeagueCategoryRound({
+    required this.roundId,
+    required this.publicRoundId,
+    required this.leagueCategoryId,
+    required this.roundName,
+    required this.roundOrder,
+    required this.roundStatus,
+    required this.matchesGenerated,
+    this.formatType,
+    this.roundFormat,
+    this.formatConfig,
+    this.formatOptions,
+    required this.position,
+    this.nextRoundId,
+    required this.leagueCategoryRoundCreatedAt,
+    required this.leagueCategoryRoundUpdatedAt,
+  });
+
+  factory LeagueCategoryRound.fromMap(Map<String, dynamic> map) {
+    return LeagueCategoryRound(
+      roundId: map['round_id'] as String,
+      publicRoundId: map['public_round_id'] as String,
+      leagueCategoryId: map['league_category_id'] as String,
+      roundName: map['round_name'] as String,
+      roundOrder: map['round_order'] as int,
+      roundStatus: map['round_status'] as String,
+      matchesGenerated: map['matches_generated'] as bool,
+      formatType: map['format_type'] as String?,
+      roundFormat: map['round_format'] as String?,
+      formatConfig: map['format_config'] as Map<String, dynamic>?,
+      formatOptions: map['format_options'] as Map<String, dynamic>?,
+      position: Map<String, int>.from(map['position'] as Map),
+      nextRoundId: map['next_round_id'] as String?,
+      leagueCategoryRoundCreatedAt:
+          map['league_category_round_created_at'] as String,
+      leagueCategoryRoundUpdatedAt:
+          map['league_category_round_updated_at'] as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'round_id': roundId,
+      'public_round_id': publicRoundId,
+      'league_category_id': leagueCategoryId,
+      'round_name': roundName,
+      'round_order': roundOrder,
+      'round_status': roundStatus,
+      'matches_generated': matchesGenerated,
+      'format_type': formatType,
+      'round_format': roundFormat,
+      'format_config': formatConfig,
+      'format_options': formatOptions,
+      'position': position,
+      'next_round_id': nextRoundId,
+      'league_category_round_created_at': leagueCategoryRoundCreatedAt,
+      'league_category_round_updated_at': leagueCategoryRoundUpdatedAt,
+    };
   }
 }
