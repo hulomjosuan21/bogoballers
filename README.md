@@ -1,16 +1,38 @@
-# bogoballers
+# BogoBallers
 
-A new Flutter project.
+## 🔹 Overview
+A centralised platform to manage basketball leagues & enhance player participation in **Bogo City**. This system aims to make all the processes of barangay and city-wide basketball leagues easier, improve the data process, and provide a better experience for **players**, **league administrators**, **coaches**, **basketball teams**, and **spectators**.
 
-## Getting Started
+**BogoBallers: Basketball League Management System** aims to improve and assist league administrators, team managers, players, and spectators through the use of digital tools like a web system and application.
 
-This project is a starting point for a Flutter application.
+## 🔹 Technology Stack
 
-A few resources to get you started if this is your first Flutter project:
+- **Backend:** Python with Quart and SocketIO  
+- **Database:** PostgreSQL  
+- **Caching:** Redis
+- **Rate Limiting:** Limiter
+- **Background Tasks:** APScheduler  
+- **Frontend Web:** Vite, React, TypeScript
+- **Frontend Mobile:** Flutter, Dart 
+- **Containerization:** Docker + Docker Compose
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🔹 Features
+- Manage leagues, teams, and player registrations  
+- Real-time score updates and notifications  
+- Scheduling and match management  
+- Role-based access for administrators, managers, and players  
+- Live statistics and analytics  
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🔹 Getting Started
+
+### Prerequisites
+- Docker & Docker Compose installed  
+- PostgreSQL and Redis services  
+
+### Running the Project
+```bash
+hypercorn src.server:app --bind 0.0.0.0:5000 --workers 4 --log-level info
+```
+```bash
+npm start
+```

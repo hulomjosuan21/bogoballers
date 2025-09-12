@@ -10,8 +10,8 @@ class Category {
   final String? allowedAddress;
   final bool allowGuestTeam;
   final bool allowGuestPlayer;
-  final int guestPlayerFeeAmount;
-  final int teamEntranceFeeAmount;
+  final double guestPlayerFeeAmount;
+  final double teamEntranceFeeAmount;
   final bool requiresValidDocument;
   final List<String>? allowedDocuments;
   final String? documentValidUntil;
@@ -45,15 +45,19 @@ class Category {
       categoryName: map['category_name'] as String,
       leagueAdministratorId: map['league_administrator_id'] as String,
       checkPlayerAge: map['check_player_age'] as bool,
-      playerMinAge: map['player_min_age'] as int?,
-      playerMaxAge: map['player_max_age'] as int?,
+      playerMinAge: map['player_min_age'] != null
+          ? (map['player_min_age'] as num).toInt()
+          : null,
+      playerMaxAge: map['player_max_age'] != null
+          ? (map['player_max_age'] as num).toInt()
+          : null,
       playerGender: map['player_gender'] as String,
       checkAddress: map['check_address'] as bool,
       allowedAddress: map['allowed_address'] as String?,
       allowGuestTeam: map['allow_guest_team'] as bool,
       allowGuestPlayer: map['allow_guest_player'] as bool,
-      guestPlayerFeeAmount: map['guest_player_fee_amount'] as int,
-      teamEntranceFeeAmount: map['team_entrance_fee_amount'] as int,
+      guestPlayerFeeAmount: map['guest_player_fee_amount'] as double,
+      teamEntranceFeeAmount: map['team_entrance_fee_amount'] as double,
       requiresValidDocument: map['requires_valid_document'] as bool,
       allowedDocuments: map['allowed_documents'] != null
           ? List<String>.from(map['allowed_documents'] as List)

@@ -220,8 +220,8 @@ class LeagueCategory extends Category {
       allowedAddress: map['allowed_address'] as String?,
       allowGuestTeam: map['allow_guest_team'] as bool,
       allowGuestPlayer: map['allow_guest_player'] as bool,
-      guestPlayerFeeAmount: map['guest_player_fee_amount'] as int,
-      teamEntranceFeeAmount: map['team_entrance_fee_amount'] as int,
+      guestPlayerFeeAmount: map['guest_player_fee_amount'] as double,
+      teamEntranceFeeAmount: map['team_entrance_fee_amount'] as double,
       requiresValidDocument: map['requires_valid_document'] as bool,
       allowedDocuments: map['allowed_documents'] != null
           ? List<String>.from(map['allowed_documents'] as List)
@@ -254,7 +254,7 @@ class League extends LeagueResource {
   final String leagueTitle;
   final String leagueDescription;
   final String leagueAddress;
-  final int leagueBudget;
+  final double leagueBudget;
   final String registrationDeadline;
   final String openingDate;
   final List<String> leagueSchedule;
@@ -300,7 +300,7 @@ class League extends LeagueResource {
       leagueTitle: map['league_title'] as String,
       leagueDescription: map['league_description'] as String,
       leagueAddress: map['league_address'] as String,
-      leagueBudget: map['league_budget'] as int,
+      leagueBudget: map['league_budget'] as double,
       registrationDeadline: map['registration_deadline'] as String,
       openingDate: map['opening_date'] as String,
       leagueSchedule: List<String>.from(map['league_schedule'] as List),
@@ -367,9 +367,6 @@ class LeagueCategoryRound {
   final bool matchesGenerated;
   final String? formatType;
   final String? roundFormat;
-  final Map<String, dynamic>? formatConfig;
-  final Map<String, dynamic>? formatOptions;
-  final Map<String, int> position;
   final String? nextRoundId;
   final String leagueCategoryRoundCreatedAt;
   final String leagueCategoryRoundUpdatedAt;
@@ -384,9 +381,6 @@ class LeagueCategoryRound {
     required this.matchesGenerated,
     this.formatType,
     this.roundFormat,
-    this.formatConfig,
-    this.formatOptions,
-    required this.position,
     this.nextRoundId,
     required this.leagueCategoryRoundCreatedAt,
     required this.leagueCategoryRoundUpdatedAt,
@@ -402,10 +396,6 @@ class LeagueCategoryRound {
       roundStatus: map['round_status'] as String,
       matchesGenerated: map['matches_generated'] as bool,
       formatType: map['format_type'] as String?,
-      roundFormat: map['round_format'] as String?,
-      formatConfig: map['format_config'] as Map<String, dynamic>?,
-      formatOptions: map['format_options'] as Map<String, dynamic>?,
-      position: Map<String, int>.from(map['position'] as Map),
       nextRoundId: map['next_round_id'] as String?,
       leagueCategoryRoundCreatedAt:
           map['league_category_round_created_at'] as String,
@@ -425,9 +415,6 @@ class LeagueCategoryRound {
       'matches_generated': matchesGenerated,
       'format_type': formatType,
       'round_format': roundFormat,
-      'format_config': formatConfig,
-      'format_options': formatOptions,
-      'position': position,
       'next_round_id': nextRoundId,
       'league_category_round_created_at': leagueCategoryRoundCreatedAt,
       'league_category_round_updated_at': leagueCategoryRoundUpdatedAt,
