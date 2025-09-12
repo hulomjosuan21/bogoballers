@@ -13,11 +13,11 @@ import 'package:getwidget/getwidget.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget
-    implements BaseSearchResultScreen<PlayerModel> {
+    implements BaseSearchResultScreen<Player> {
   @override
   final List<Permission> permissions;
   @override
-  final PlayerModel result;
+  final Player result;
   const PlayerScreen({
     super.key,
     required this.permissions,
@@ -35,11 +35,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text(widget.result.full_name)),
+      appBar: AppBar(centerTitle: true, title: Text(widget.result.fullName)),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (widget.result.profile_image_url.isNotEmpty)
+            if (widget.result.profileImageUrl.isNotEmpty)
               Center(
                 child: SizedBox(
                   width: 200,
@@ -49,7 +49,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(Sizes.radiusMd),
                         image: DecorationImage(
-                          image: NetworkImage(widget.result.profile_image_url),
+                          image: NetworkImage(widget.result.profileImageUrl),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -89,7 +89,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     try {
       final response = await PlayerTeamService.addPlayer(
         teamId: result['teamId'],
-        playerId: widget.result.player_id,
+        playerId: widget.result.playerId,
         status: "Invited",
       );
       final _ = await ref.refresh(teamsProvider.future);

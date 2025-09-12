@@ -1,6 +1,5 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/data/static_data.dart';
-import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/providers/team_provider.dart';
 import 'package:bogoballers/core/services/team_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
@@ -10,6 +9,7 @@ import 'package:bogoballers/core/validations/validators.dart';
 import 'package:bogoballers/core/widget/image_picker.dart';
 import 'package:bogoballers/core/widget/phone_number_input.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:dio/dio.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -123,7 +123,7 @@ class _CreateTeamSreenState extends ConsumerState<CreateTeamSreen> {
                   labelText: "Team assistant coach",
                 ),
               ),
-                const SizedBox(height: Sizes.spaceMd),
+              const SizedBox(height: Sizes.spaceMd),
               termAndCondition(
                 context: context,
                 hasAcceptedTerms: hasAcceptedTerms,
@@ -167,17 +167,17 @@ class _CreateTeamSreenState extends ConsumerState<CreateTeamSreen> {
         selectedLeagueCategory: selectedLeagueCategories,
       );
 
-      final newTeam = CreateTeam(
-        team_name: teamNameController.text,
-        team_address: selectedBarangay!,
-        contact_number: phoneNumber!,
-        team_motto: teamMotoController.text,
-        team_logo: multipartFile!,
-        coach_name: teamCoachController.text,
-        assistant_coach_name: teamAssistantCoachController.text,
-      );
+      final formData = FormData.fromMap({
+        "team_name": teamNameController.text,
+        "team_address": selectedBarangay!,
+        "contact_number": phoneNumber!,
+        "team_motto": teamMotoController.text,
+        "team_logo": multipartFile,
+        "coach_name": teamCoachController.text,
+        "assistant_coach_name": teamAssistantCoachController.text,
+      });
 
-      final response = await TeamService.createTeam(newTeam.toFormData());
+      final response = await TeamService.createTeam(formData);
 
       final _ = await ref.refresh(teamsProvider.future);
       if (mounted) {

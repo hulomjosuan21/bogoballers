@@ -11,11 +11,11 @@ import 'package:getwidget/components/button/gf_button.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 
 class TeamScreen extends StatefulWidget
-    implements BaseSearchResultScreen<TeamModelForSearchResult> {
+    implements BaseSearchResultScreen<Team> {
   @override
   final List<Permission> permissions;
   @override
-  final TeamModelForSearchResult result;
+  final Team result;
 
   const TeamScreen({
     super.key,
@@ -34,11 +34,11 @@ class _TeamScreenState extends State<TeamScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text(widget.result.team_name)),
+      appBar: AppBar(centerTitle: true, title: Text(widget.result.teamName)),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (widget.result.team_logo_url.isNotEmpty)
+            if (widget.result.teamLogoUrl.isNotEmpty)
               Center(
                 child: SizedBox(
                   width: 200,
@@ -48,7 +48,7 @@ class _TeamScreenState extends State<TeamScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(Sizes.radiusMd),
                         image: DecorationImage(
-                          image: NetworkImage(widget.result.team_logo_url),
+                          image: NetworkImage(widget.result.teamLogoUrl),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -79,7 +79,7 @@ class _TeamScreenState extends State<TeamScreen> {
       final entity = await getEntityCredentialsFromStorage();
 
       final response = await PlayerTeamService.addPlayer(
-        teamId: widget.result.team_id,
+        teamId: widget.result.teamId,
         playerId: entity.entityId,
         status: "Pending",
       );

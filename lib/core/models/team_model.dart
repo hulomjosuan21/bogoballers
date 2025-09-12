@@ -1,222 +1,274 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
-import 'package:dio/dio.dart';
 
-abstract class Team {
-  final String team_id;
-  final String user_id;
-  final String team_name;
-  final String team_address;
-  final String contact_number;
-  final String? team_motto;
-  final String team_logo_url;
-  final int championships_won;
-  final String coach_name;
-  final String? assistant_coach_name;
-  final int total_wins;
-  final int total_losses;
-  final int total_draws;
-  final int total_points;
-  final bool is_recruiting;
-  final String? team_category;
+class Team {
+  final String teamId;
+  final String publicTeamId;
+  final String userId;
+  final String teamName;
+  final String teamAddress;
+  final String? teamCategory;
+  final String contactNumber;
+  final String? teamMotto;
+  final String teamLogoUrl;
+  final int championshipsWon;
+  final String coachName;
+  final String? assistantCoachName;
+  final int totalWins;
+  final int totalLosses;
+  final int totalDraws;
+  final int totalPoints;
+  final bool isRecruiting;
+  final User creator;
+  final String teamCreatedAt;
+  final String teamUpdatedAt;
+  final List<PlayerTeam> acceptedPlayers;
+  final List<PlayerTeam> pendingPlayers;
+  final List<PlayerTeam> rejectedPlayers;
+  final List<PlayerTeam> invitedPlayers;
+  final List<PlayerTeam> standbyPlayers;
+  final List<PlayerTeam> guestPlayers;
 
   Team({
-    required this.team_id,
-    required this.user_id,
-    required this.team_name,
-    required this.team_address,
-    required this.contact_number,
-    required this.team_motto,
-    required this.team_logo_url,
-    required this.championships_won,
-    required this.coach_name,
-    required this.assistant_coach_name,
-    required this.total_wins,
-    required this.total_losses,
-    required this.total_draws,
-    required this.total_points,
-    required this.is_recruiting,
-    required this.team_category,
-  });
-}
-
-class TeamModelForSearchResult extends Team {
-  final UserModel user;
-  final List<PlayerTeamModel> accepted_players;
-
-  TeamModelForSearchResult({
-    required super.team_id,
-    required super.user_id,
-    required super.team_name,
-    required super.team_address,
-    required super.contact_number,
-    required super.team_motto,
-    required super.team_logo_url,
-    required super.championships_won,
-    required super.coach_name,
-    required super.assistant_coach_name,
-    required super.total_wins,
-    required super.total_losses,
-    required super.total_draws,
-    required super.total_points,
-    required super.is_recruiting,
-    required super.team_category,
-    required this.user,
-    required this.accepted_players,
+    required this.teamId,
+    required this.publicTeamId,
+    required this.userId,
+    required this.teamName,
+    required this.teamAddress,
+    this.teamCategory,
+    required this.contactNumber,
+    this.teamMotto,
+    required this.teamLogoUrl,
+    required this.championshipsWon,
+    required this.coachName,
+    this.assistantCoachName,
+    required this.totalWins,
+    required this.totalLosses,
+    required this.totalDraws,
+    required this.totalPoints,
+    required this.isRecruiting,
+    required this.creator,
+    required this.teamCreatedAt,
+    required this.teamUpdatedAt,
+    required this.acceptedPlayers,
+    required this.pendingPlayers,
+    required this.rejectedPlayers,
+    required this.invitedPlayers,
+    required this.standbyPlayers,
+    required this.guestPlayers,
   });
 
-  factory TeamModelForSearchResult.fromMap(Map<String, dynamic> json) {
-    return TeamModelForSearchResult(
-      team_id: json['team_id'],
-      user_id: json['user_id'],
-      team_name: json['team_name'],
-      team_address: json['team_address'],
-      contact_number: json['contact_number'],
-      team_motto: json['team_motto'],
-      team_logo_url: json['team_logo_url'],
-      championships_won: json['championships_won'],
-      coach_name: json['coach_name'],
-      assistant_coach_name: json['assistant_coach_name'],
-      total_wins: json['total_wins'],
-      total_losses: json['total_losses'],
-      total_draws: json['total_draws'],
-      total_points: json['total_points'],
-      is_recruiting: json['is_recruiting'],
-      team_category: json['team_category'],
-      user: UserModel.fromMap(json['user']),
-      accepted_players:
-          (json['accepted_players'] as List<dynamic>?)
-              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-    );
-  }
-}
-
-class TeamModel extends Team {
-  final List<PlayerTeamModel> accepted_players;
-  final List<PlayerTeamModel> pending_players;
-  final List<PlayerTeamModel> rejected_players;
-  final List<PlayerTeamModel> invited_players;
-  TeamModel({
-    required super.team_id,
-    required super.user_id,
-    required super.team_name,
-    required super.team_address,
-    required super.contact_number,
-    required super.team_motto,
-    required super.team_logo_url,
-    required super.championships_won,
-    required super.coach_name,
-    required super.assistant_coach_name,
-    required super.total_wins,
-    required super.total_losses,
-    required super.total_draws,
-    required super.total_points,
-    required super.is_recruiting,
-    required super.team_category,
-    required this.accepted_players,
-    required this.pending_players,
-    required this.rejected_players,
-    required this.invited_players,
-  });
-
-  factory TeamModel.fromMap(Map<String, dynamic> json) {
-    return TeamModel(
-      team_id: json['team_id'],
-      user_id: json['user_id'],
-      team_name: json['team_name'],
-      team_address: json['team_address'],
-      contact_number: json['contact_number'],
-      team_motto: json['team_motto'],
-      team_logo_url: json['team_logo_url'],
-      championships_won: json['championships_won'],
-      coach_name: json['coach_name'],
-      assistant_coach_name: json['assistant_coach_name'],
-      total_wins: json['total_wins'],
-      total_losses: json['total_losses'],
-      total_draws: json['total_draws'],
-      total_points: json['total_points'],
-      is_recruiting: json['is_recruiting'],
-      team_category: json['team_category'],
-      invited_players:
-          (json['invited_players'] as List<dynamic>?)
-              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      pending_players:
-          (json['pending_players'] as List<dynamic>?)
-              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      rejected_players:
-          (json['rejected_players'] as List<dynamic>?)
-              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      accepted_players:
-          (json['accepted_players'] as List<dynamic>?)
-              ?.map((e) => PlayerTeamModel.fromMap(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+  factory Team.fromMap(Map<String, dynamic> map) {
+    return Team(
+      teamId: map['team_id'] as String,
+      publicTeamId: map['public_team_id'] as String,
+      userId: map['user_id'] as String,
+      teamName: map['team_name'] as String,
+      teamAddress: map['team_address'] as String,
+      teamCategory: map['team_category'] as String?,
+      contactNumber: map['contact_number'] as String,
+      teamMotto: map['team_motto'] as String?,
+      teamLogoUrl: map['team_logo_url'] as String,
+      championshipsWon: map['championships_won'] as int,
+      coachName: map['coach_name'] as String,
+      assistantCoachName: map['assistant_coach_name'] as String?,
+      totalWins: map['total_wins'] as int,
+      totalLosses: map['total_losses'] as int,
+      totalDraws: map['total_draws'] as int,
+      totalPoints: map['total_points'] as int,
+      isRecruiting: map['is_recruiting'] as bool,
+      creator: User.fromMap(map['creator'] as Map<String, dynamic>),
+      teamCreatedAt: map['team_created_at'] as String,
+      teamUpdatedAt: map['team_updated_at'] as String,
+      acceptedPlayers: (map['accepted_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      pendingPlayers: (map['pending_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      rejectedPlayers: (map['rejected_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      invitedPlayers: (map['invited_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      standbyPlayers: (map['stanby_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      guestPlayers: (map['guest_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'team_id': team_id,
-      'user_id': user_id,
-      'team_name': team_name,
-      'team_address': team_address,
-      'contact_number': contact_number,
-      'team_motto': team_motto,
-      'team_logo_url': team_logo_url,
-      'championships_won': championships_won,
-      'coach_name': coach_name,
-      'assistant_coach_name': assistant_coach_name,
-      'total_wins': total_wins,
-      'total_losses': total_losses,
-      'total_draws': total_draws,
-      'total_points': total_points,
-      'is_recruiting': is_recruiting,
-      'team_category': team_category,
-      'invited_players': invited_players.map((e) => e.toMap()).toList(),
-      'pending_players': pending_players.map((e) => e.toMap()).toList(),
-      'rejected_players': rejected_players.map((e) => e.toMap()).toList(),
-      'accepted_players': accepted_players.map((e) => e.toMap()).toList(),
+      'team_id': teamId,
+      'public_team_id': publicTeamId,
+      'user_id': userId,
+      'team_name': teamName,
+      'team_address': teamAddress,
+      'team_category': teamCategory,
+      'contact_number': contactNumber,
+      'team_motto': teamMotto,
+      'team_logo_url': teamLogoUrl,
+      'championships_won': championshipsWon,
+      'coach_name': coachName,
+      'assistant_coach_name': assistantCoachName,
+      'total_wins': totalWins,
+      'total_losses': totalLosses,
+      'total_draws': totalDraws,
+      'total_points': totalPoints,
+      'is_recruiting': isRecruiting,
+      'creator': creator.toMap(),
+      'team_created_at': teamCreatedAt,
+      'team_updated_at': teamUpdatedAt,
+      'accepted_players': acceptedPlayers.map((e) => e.toMap()).toList(),
+      'pending_players': pendingPlayers.map((e) => e.toMap()).toList(),
+      'rejected_players': rejectedPlayers.map((e) => e.toMap()).toList(),
+      'invited_players': invitedPlayers.map((e) => e.toMap()).toList(),
+      'stanby_players': standbyPlayers.map((e) => e.toMap()).toList(),
+      'guest_players': guestPlayers.map((e) => e.toMap()).toList(),
     };
   }
 }
 
-class CreateTeam {
-  final String team_name;
-  final String team_address;
-  final String contact_number;
-  final String team_motto;
-  final MultipartFile team_logo;
-  final String coach_name;
-  final String assistant_coach_name;
+class LeagueTeam extends Team {
+  final String leagueTeamId;
+  final String leagueId;
+  final String leagueCategoryId;
+  final String status;
+  final bool isEliminated;
+  final int amountPaid;
+  final String paymentStatus;
+  final int wins;
+  final int losses;
+  final int draws;
+  final int points;
+  final String leagueTeamCreatedAt;
+  final String leagueTeamUpdatedAt;
+  final List<LeaguePlayer> leaguePlayers;
 
-  CreateTeam({
-    required this.team_name,
-    required this.team_address,
-    required this.contact_number,
-    required this.team_motto,
-    required this.team_logo,
-    required this.coach_name,
-    required this.assistant_coach_name,
+  LeagueTeam({
+    required this.leagueTeamId,
+    required this.leagueId,
+    required this.leagueCategoryId,
+    required this.status,
+    required this.isEliminated,
+    required this.amountPaid,
+    required this.paymentStatus,
+    required this.wins,
+    required this.losses,
+    required this.draws,
+    required this.points,
+    required this.leagueTeamCreatedAt,
+    required this.leagueTeamUpdatedAt,
+    required this.leaguePlayers,
+    required super.teamId,
+    required super.publicTeamId,
+    required super.userId,
+    required super.teamName,
+    required super.teamAddress,
+    super.teamCategory,
+    required super.contactNumber,
+    super.teamMotto,
+    required super.teamLogoUrl,
+    required super.championshipsWon,
+    required super.coachName,
+    super.assistantCoachName,
+    required super.totalWins,
+    required super.totalLosses,
+    required super.totalDraws,
+    required super.totalPoints,
+    required super.isRecruiting,
+    required super.creator,
+    required super.teamCreatedAt,
+    required super.teamUpdatedAt,
+    required super.acceptedPlayers,
+    required super.pendingPlayers,
+    required super.rejectedPlayers,
+    required super.invitedPlayers,
+    required super.standbyPlayers,
+    required super.guestPlayers,
   });
 
-  FormData toFormData() {
-    return FormData.fromMap({
-      'team_name': team_name,
-      'team_address': team_address,
-      'contact_number': contact_number,
-      'team_motto': team_motto,
-      'team_logo': team_logo,
-      'coach_name': coach_name,
-      'assistant_coach_name': assistant_coach_name,
-    });
+  factory LeagueTeam.fromMap(Map<String, dynamic> map) {
+    return LeagueTeam(
+      leagueTeamId: map['league_team_id'] as String,
+      leagueId: map['league_id'] as String,
+      leagueCategoryId: map['league_category_id'] as String,
+      status: map['status'] as String,
+      isEliminated: map['is_eliminated'] as bool,
+      amountPaid: map['amount_paid'] as int,
+      paymentStatus: map['payment_status'] as String,
+      wins: map['wins'] as int,
+      losses: map['losses'] as int,
+      draws: map['draws'] as int,
+      points: map['points'] as int,
+      leagueTeamCreatedAt: map['league_team_created_at'] as String,
+      leagueTeamUpdatedAt: map['league_team_updated_at'] as String,
+      leaguePlayers: (map['league_players'] as List)
+          .map((e) => LeaguePlayer.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      teamId: map['team_id'] as String,
+      publicTeamId: map['public_team_id'] as String,
+      userId: map['user_id'] as String,
+      teamName: map['team_name'] as String,
+      teamAddress: map['team_address'] as String,
+      teamCategory: map['team_category'] as String?,
+      contactNumber: map['contact_number'] as String,
+      teamMotto: map['team_motto'] as String?,
+      teamLogoUrl: map['team_logo_url'] as String,
+      championshipsWon: map['championships_won'] as int,
+      coachName: map['coach_name'] as String,
+      assistantCoachName: map['assistant_coach_name'] as String?,
+      totalWins: map['total_wins'] as int,
+      totalLosses: map['total_losses'] as int,
+      totalDraws: map['total_draws'] as int,
+      totalPoints: map['total_points'] as int,
+      isRecruiting: map['is_recruiting'] as bool,
+      creator: User.fromMap(map['creator'] as Map<String, dynamic>),
+      teamCreatedAt: map['team_created_at'] as String,
+      teamUpdatedAt: map['team_updated_at'] as String,
+      acceptedPlayers: (map['accepted_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      pendingPlayers: (map['pending_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      rejectedPlayers: (map['rejected_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      invitedPlayers: (map['invited_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      standbyPlayers: (map['stanby_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      guestPlayers: (map['guest_players'] as List)
+          .map((e) => PlayerTeam.fromMap(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      'league_team_id': leagueTeamId,
+      'league_id': leagueId,
+      'league_category_id': leagueCategoryId,
+      'status': status,
+      'is_eliminated': isEliminated,
+      'amount_paid': amountPaid,
+      'payment_status': paymentStatus,
+      'wins': wins,
+      'losses': losses,
+      'draws': draws,
+      'points': points,
+      'league_team_created_at': leagueTeamCreatedAt,
+      'league_team_updated_at': leagueTeamUpdatedAt,
+      'league_players': leaguePlayers.map((e) => e.toMap()).toList(),
+    };
   }
 }

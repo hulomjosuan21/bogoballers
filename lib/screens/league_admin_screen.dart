@@ -4,11 +4,11 @@ import 'package:bogoballers/core/widget/search_screem_list_tiles.dart';
 import 'package:flutter/material.dart';
 
 class LeagueAdministratorScreen extends StatelessWidget
-    implements BaseSearchResultScreen<LeagueAdminModel> {
+    implements BaseSearchResultScreen<LeagueAdministrator> {
   @override
   final List<Permission> permissions;
   @override
-  final LeagueAdminModel result;
+  final LeagueAdministrator result;
   const LeagueAdministratorScreen({
     super.key,
     required this.permissions,

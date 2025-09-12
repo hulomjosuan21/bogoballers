@@ -1,7 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
-import 'package:bogoballers/core/models/league.dart';
 import 'package:bogoballers/core/models/league_admin_model.dart';
+import 'package:bogoballers/core/models/league_model.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/services/entity_service.dart';
@@ -155,25 +155,25 @@ class _SearchScreenState extends State<SearchScreen> {
                         final data = result['data'];
 
                         if (type == 'player') {
-                          final player = PlayerModel.fromMap(data);
+                          final player = Player.fromMap(data);
                           return PlayerSearchResultListTile(
                             result: player,
                             permissions: userPermission(accountType),
                           );
                         } else if (type == 'team') {
-                          final team = TeamModelForSearchResult.fromMap(data);
+                          final team = Team.fromMap(data);
                           return TeamSearchResultListTile(
                             result: team,
                             permissions: userPermission(accountType),
                           );
                         } else if (type == 'league_administrator') {
-                          final leagueAdmin = LeagueAdminModel.fromMap(data);
+                          final leagueAdmin = LeagueAdministrator.fromMap(data);
                           return LeagueAdministratorSearchResultListTile(
                             result: leagueAdmin,
                             permissions: userPermission(accountType),
                           );
                         } else if (type == 'league') {
-                          final league = LeagueModel.fromMap(data);
+                          final league = League.fromMap(data);
                           return LeagueSearchResultListTile(
                             result: league,
                             permissions: userPermission(accountType),

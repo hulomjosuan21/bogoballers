@@ -1,8 +1,6 @@
 import 'dart:async';
-
 import 'package:bogoballers/core/constants/file_strings.dart';
 import 'package:bogoballers/core/constants/size.dart';
-import 'package:bogoballers/core/models/user_model.dart';
 import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/custom_exceptions.dart';
@@ -49,13 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (fcmToken == null) return;
 
-      final user = UserLogin(
-        email: emailController.text,
-        password: passwordController.text,
-        fcm_token: fcmToken,
-      );
+      Map<String, String> userLogin = {
+        'email': emailController.text,
+        'password': passwordController.text,
+        'fcm_token': fcmToken,
+      };
 
-      final response = await EntityService.login(u: user.toFormData());
+      final response = await EntityService.login(u: userLogin);
       if (mounted) {
         showAppSnackbar(
           context,

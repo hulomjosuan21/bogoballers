@@ -1,7 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/helpers/formaters.dart';
-import 'package:bogoballers/core/models/league.dart';
+import 'package:bogoballers/core/models/league_model.dart';
 import 'package:bogoballers/core/services/league/league_service.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
 import 'package:bogoballers/core/widget/search_screem_list_tiles.dart';
@@ -38,11 +38,11 @@ Widget infoRow(String label, String value) {
 }
 
 class LeagueScreen extends StatefulWidget
-    implements BaseSearchResultScreen<LeagueModel> {
+    implements BaseSearchResultScreen<League> {
   @override
   final List<Permission> permissions;
   @override
-  final LeagueModel result;
+  final League result;
 
   const LeagueScreen({
     super.key,
@@ -68,7 +68,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.result.banner_url.isNotEmpty)
+            if (widget.result.bannerUrl.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(Sizes.spaceMd),
                 child: AspectRatio(
@@ -77,7 +77,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Sizes.radiusMd),
                       image: DecorationImage(
-                        image: NetworkImage(widget.result.banner_url),
+                        image: NetworkImage(widget.result.bannerUrl),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -92,7 +92,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
                 bottom: Sizes.spaceXs,
               ),
               child: Text(
-                widget.result.league_title,
+                widget.result.leagueTitle,
                 maxLines: 2,
                 overflow: TextOverflow.fade,
                 style: TextStyle(
@@ -109,7 +109,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
                 bottom: Sizes.spaceMd,
               ),
               child: Text(
-                widget.result.league_description,
+                widget.result.leagueDescription,
                 maxLines: 40,
                 overflow: TextOverflow.fade,
                 style: TextStyle(fontSize: Sizes.fontSizeSm),
@@ -133,26 +133,24 @@ class _LeagueScreenState extends State<LeagueScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  infoRow("📍 Address", widget.result.league_address),
+                  infoRow("📍 Address", widget.result.leagueAddress),
                   infoRow(
                     "📅 Season Year",
-                    widget.result.season_year.toString(),
+                    widget.result.seasonYear.toString(),
                   ),
                   infoRow(
                     "📝 Registration Deadline",
-                    Formater.formatDateTime(
-                      widget.result.registration_deadline,
-                    ),
+                    Formater.formatDateTime(widget.result.registrationDeadline),
                   ),
                   infoRow(
                     "🎉 Opening Date",
-                    Formater.formatDateTime(widget.result.opening_date),
+                    Formater.formatDateTime(widget.result.openingDate),
                   ),
                   infoRow("✅ Status", widget.result.status),
-                  if (widget.result.league_schedule.isNotEmpty)
+                  if (widget.result.leagueSchedule.isNotEmpty)
                     infoRow(
                       "📆 Schedule",
-                      "From ${Formater.formatDate(widget.result.league_schedule.first)} to ${Formater.formatDate(widget.result.league_schedule.last)}",
+                      "From ${Formater.formatDate(widget.result.leagueSchedule.first)} to ${Formater.formatDate(widget.result.leagueSchedule.last)}",
                     ),
                 ],
               ),
@@ -172,13 +170,13 @@ class _LeagueScreenState extends State<LeagueScreen> {
               ),
             ),
 
-            if (widget.result.categories.isNotEmpty)
+            if (widget.result.leagueCategories.isNotEmpty)
               ListView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: widget.result.categories.length,
+                itemCount: widget.result.leagueCategories.length,
                 itemBuilder: (context, index) {
-                  final category = widget.result.categories[index];
+                  final category = widget.result.leagueCategories[index];
                   return _categorTile(category);
                 },
               ),
@@ -213,11 +211,11 @@ class _LeagueScreenState extends State<LeagueScreen> {
         children: [
           Expanded(
             child: Text(
-              category.category_name,
+              category.categoryName,
               style: TextStyle(fontSize: Sizes.fontSizeMd),
             ),
           ),
-          if (category.accept_teams) ...[
+          if (category.acceptTeams) ...[
             const SizedBox(width: 8),
             _buildBadge('Open', Colors.green),
           ],
@@ -225,7 +223,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
       ),
       trailing: const Icon(Icons.chevron_right, size: Sizes.fontSizeMd),
       onTap: () {
-        if (category.accept_teams) {
+        if (category.acceptTeams) {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -271,7 +269,7 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.leagueCategory.category_name,
+          widget.leagueCategory.categoryName,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -285,7 +283,7 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  infoRow("Gender", widget.leagueCategory.player_gender),
+                  infoRow("Gender", widget.leagueCategory.playerGender),
                 ],
               ),
             ),
@@ -349,11 +347,11 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
 
     final data = {
       "team_id": result['teamId'],
-      "league_id": widget.leagueCategory.league_id,
-      "league_category_id": widget.leagueCategory.league_category_id,
+      "league_id": widget.leagueCategory.leagueId,
+      "league_category_id": widget.leagueCategory.leagueCategoryId,
       "payment_method": paymentMethod,
       if (paymentMethod == "Pay online")
-        "amount": widget.leagueCategory.team_entrance_fee_amount,
+        "amount": widget.leagueCategory.teamEntranceFeeAmount,
     };
 
     try {

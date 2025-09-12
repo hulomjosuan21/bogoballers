@@ -1,261 +1,330 @@
-// ignore_for_file: non_constant_identifier_names
-
-import 'dart:convert';
-
+import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
-import 'package:dio/dio.dart';
 
-abstract class Player {
-  final String player_id;
-  final String user_id;
-  final String full_name;
+class Player {
+  final String playerId;
+  final String publicPlayerId;
+  final String userId;
+  final String fullName;
+  final String profileImageUrl;
   final String gender;
-  final String birth_date;
-  final String player_address;
-  final String jersey_name;
-  final double jersey_number;
+  final String birthDate;
+  final String playerAddress;
+  final String jerseyName;
+  final int jerseyNumber;
   final List<String> position;
-  final double height_in;
-  final double weight_kg;
-  final int total_games_played;
-  final int total_points_scored;
-  final int total_assists;
-  final int total_rebounds;
-  final int total_join_league;
-  final String profile_image_url;
+  final int heightIn;
+  final int weightKg;
+  final int totalGamesPlayed;
+  final int totalPointsScored;
+  final int totalAssists;
+  final int totalRebounds;
+  final int totalJoinLeague;
+  final bool isBan;
+  final bool isAllowed;
+  final List<String>? validDocuments;
+  final User user;
+  final String playerCreatedAt;
+  final String playerUpdatedAt;
 
   Player({
-    required this.player_id,
-    required this.user_id,
-    required this.full_name,
+    required this.playerId,
+    required this.publicPlayerId,
+    required this.userId,
+    required this.fullName,
+    required this.profileImageUrl,
     required this.gender,
-    required this.birth_date,
-    required this.player_address,
-    required this.jersey_name,
-    required this.jersey_number,
+    required this.birthDate,
+    required this.playerAddress,
+    required this.jerseyName,
+    required this.jerseyNumber,
     required this.position,
-    required this.height_in,
-    required this.weight_kg,
-    required this.total_games_played,
-    required this.total_points_scored,
-    required this.total_assists,
-    required this.total_rebounds,
-    required this.profile_image_url,
-    required this.total_join_league,
-  });
-}
-
-class PlayerModel extends Player {
-  final UserModel user;
-  final String created_at;
-  final String updated_at;
-  PlayerModel({
-    required super.player_id,
-    required super.user_id,
-    required super.full_name,
-    required super.gender,
-    required super.birth_date,
-    required super.player_address,
-    required super.jersey_name,
-    required super.jersey_number,
-    required super.position,
-    required super.height_in,
-    required super.weight_kg,
-    required super.total_games_played,
-    required super.total_points_scored,
-    required super.total_assists,
-    required super.total_rebounds,
-    required super.profile_image_url,
-    required this.created_at,
-    required this.updated_at,
+    required this.heightIn,
+    required this.weightKg,
+    required this.totalGamesPlayed,
+    required this.totalPointsScored,
+    required this.totalAssists,
+    required this.totalRebounds,
+    required this.totalJoinLeague,
+    required this.isBan,
+    required this.isAllowed,
+    this.validDocuments,
     required this.user,
-    required super.total_join_league,
+    required this.playerCreatedAt,
+    required this.playerUpdatedAt,
   });
 
-  factory PlayerModel.fromMap(Map<String, dynamic> map) {
-    return PlayerModel(
-      player_id: map['player_id'],
-      user_id: map['user_id'],
-      full_name: map['full_name'],
-      gender: map['gender'],
-      birth_date: map['birth_date'],
-      player_address: map['player_address'],
-      jersey_name: map['jersey_name'],
-      jersey_number: map['jersey_number'],
-      position: List<String>.from(map['position']),
-      height_in: map['height_in'],
-      weight_kg: map['weight_kg'],
-      total_games_played: map['total_games_played'],
-      total_points_scored: map['total_points_scored'],
-      total_assists: map['total_assists'],
-      total_rebounds: map['total_rebounds'],
-      total_join_league: map['total_join_league'],
-      profile_image_url: map['profile_image_url'],
-      created_at: map['created_at'],
-      updated_at: map['updated_at'],
-      user: UserModel.fromMap(map['user']),
+  factory Player.fromMap(Map<String, dynamic> map) {
+    return Player(
+      playerId: map['player_id'] as String,
+      publicPlayerId: map['public_player_id'] as String,
+      userId: map['user_id'] as String,
+      fullName: map['full_name'] as String,
+      profileImageUrl: map['profile_image_url'] as String,
+      gender: map['gender'] as String,
+      birthDate: map['birth_date'] as String,
+      playerAddress: map['player_address'] as String,
+      jerseyName: map['jersey_name'] as String,
+      jerseyNumber: map['jersey_number'] as int,
+      position: List<String>.from(map['position'] as List),
+      heightIn: map['height_in'] as int,
+      weightKg: map['weight_kg'] as int,
+      totalGamesPlayed: map['total_games_played'] as int,
+      totalPointsScored: map['total_points_scored'] as int,
+      totalAssists: map['total_assists'] as int,
+      totalRebounds: map['total_rebounds'] as int,
+      totalJoinLeague: map['total_join_league'] as int,
+      isBan: map['is_ban'] as bool,
+      isAllowed: map['is_allowed'] as bool,
+      validDocuments: map['valid_documents'] != null
+          ? List<String>.from(map['valid_documents'] as List)
+          : null,
+      user: User.fromMap(map['user'] as Map<String, dynamic>),
+      playerCreatedAt: map['player_created_at'] as String,
+      playerUpdatedAt: map['player_updated_at'] as String,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'player_id': player_id,
-      'user_id': user_id,
-      'full_name': full_name,
+      'player_id': playerId,
+      'public_player_id': publicPlayerId,
+      'user_id': userId,
+      'full_name': fullName,
+      'profile_image_url': profileImageUrl,
       'gender': gender,
-      'birth_date': birth_date,
-      'player_address': player_address,
-      'jersey_name': jersey_name,
-      'jersey_number': jersey_number,
+      'birth_date': birthDate,
+      'player_address': playerAddress,
+      'jersey_name': jerseyName,
+      'jersey_number': jerseyNumber,
       'position': position,
-      'height_in': height_in,
-      'weight_kg': weight_kg,
-      'total_games_played': total_games_played,
-      'total_points_scored': total_points_scored,
-      'total_assists': total_assists,
-      'total_rebounds': total_rebounds,
-      'profile_image_url': profile_image_url,
-      'created_at': created_at,
-      'updated_at': updated_at,
+      'height_in': heightIn,
+      'weight_kg': weightKg,
+      'total_games_played': totalGamesPlayed,
+      'total_points_scored': totalPointsScored,
+      'total_assists': totalAssists,
+      'total_rebounds': totalRebounds,
+      'total_join_league': totalJoinLeague,
+      'is_ban': isBan,
+      'is_allowed': isAllowed,
+      'valid_documents': validDocuments,
       'user': user.toMap(),
+      'player_created_at': playerCreatedAt,
+      'player_updated_at': playerUpdatedAt,
     };
   }
 }
 
-class CreatePlayer {
-  final String email;
-  final String password_str;
-  final String contact_number;
-  final String full_name;
-  final String gender;
-  final String birth_date;
-  final String player_address;
-  final String? fcm_token;
-  final String jersey_name;
-  final double jersey_number;
-  final List<String> position;
-  final MultipartFile profile_image;
+class PlayerTeam extends Player {
+  final String playerTeamId;
+  final String teamId;
+  final bool isTeamCaptain;
+  final String isAccepted;
+  final String playerTeamCreatedAt;
+  final String playerTeamUpdatedAt;
 
-  CreatePlayer({
-    required this.email,
-    required this.password_str,
-    required this.contact_number,
-    required this.full_name,
-    required this.gender,
-    required this.birth_date,
-    required this.player_address,
-    required this.jersey_name,
-    required this.jersey_number,
-    required this.position,
-    required this.profile_image,
-    required this.fcm_token,
-  });
-
-  FormData toFormDataForCreation() {
-    final map = {
-      "email": email,
-      "password_str": password_str,
-      "contact_number": contact_number,
-      "full_name": full_name,
-      "gender": gender,
-      "birth_date": birth_date,
-      "player_address": player_address,
-      "jersey_name": jersey_name,
-      "jersey_number": jersey_number,
-      "position": jsonEncode(position),
-      "profile_image": profile_image,
-    };
-
-    if (fcm_token != null && fcm_token!.isNotEmpty) {
-      map["fcm_token"] = fcm_token!;
-    }
-
-    return FormData.fromMap(map);
-  }
-}
-
-class PlayerTeamModel extends Player {
-  final String player_team_id;
-  final String team_id;
-  final bool is_ban;
-  final String is_accepted;
-  final UserModelForTeam user;
-
-  PlayerTeamModel({
-    required this.player_team_id,
-    required this.team_id,
-    required this.is_ban,
-    required this.is_accepted,
-    required super.player_id,
-    required super.user_id,
-    required super.full_name,
+  PlayerTeam({
+    required this.playerTeamId,
+    required this.teamId,
+    required this.isTeamCaptain,
+    required this.isAccepted,
+    required this.playerTeamCreatedAt,
+    required this.playerTeamUpdatedAt,
+    required super.playerId,
+    required super.publicPlayerId,
+    required super.userId,
+    required super.fullName,
+    required super.profileImageUrl,
     required super.gender,
-    required super.birth_date,
-    required super.player_address,
-    required super.jersey_name,
-    required super.jersey_number,
+    required super.birthDate,
+    required super.playerAddress,
+    required super.jerseyName,
+    required super.jerseyNumber,
     required super.position,
-    required super.height_in,
-    required super.weight_kg,
-    required super.total_games_played,
-    required super.total_points_scored,
-    required super.total_assists,
-    required super.total_rebounds,
-    required super.profile_image_url,
-    required this.user,
-    required super.total_join_league,
+    required super.heightIn,
+    required super.weightKg,
+    required super.totalGamesPlayed,
+    required super.totalPointsScored,
+    required super.totalAssists,
+    required super.totalRebounds,
+    required super.totalJoinLeague,
+    required super.isBan,
+    required super.isAllowed,
+    super.validDocuments,
+    required super.user,
+    required super.playerCreatedAt,
+    required super.playerUpdatedAt,
   });
 
-  factory PlayerTeamModel.fromMap(Map<String, dynamic> map) {
-    return PlayerTeamModel(
-      player_team_id: map['player_team_id'],
-      team_id: map['team_id'],
-      is_ban: map['is_ban'],
-      is_accepted: map['is_accepted'],
-      player_id: map['player_id'],
-      user_id: map['user_id'],
-      full_name: map['full_name'],
-      gender: map['gender'],
-      birth_date: map['birth_date'],
-      player_address: map['player_address'],
-      jersey_name: map['jersey_name'],
-      jersey_number: (map['jersey_number'] as num).toDouble(),
-      position: List<String>.from(map['position']),
-      height_in: (map['height_in'] as num).toDouble(),
-      weight_kg: (map['weight_kg'] as num).toDouble(),
-      total_games_played: map['total_games_played'],
-      total_points_scored: map['total_points_scored'],
-      total_assists: map['total_assists'],
-      total_rebounds: map['total_rebounds'],
-      total_join_league: map['total_join_league'],
-      profile_image_url: map['profile_image_url'],
-      user: UserModelForTeam.fromMap(map['user']),
+  factory PlayerTeam.fromMap(Map<String, dynamic> map) {
+    return PlayerTeam(
+      playerTeamId: map['player_team_id'] as String,
+      teamId: map['team_id'] as String,
+      isTeamCaptain: map['is_team_captain'] as bool,
+      isAccepted: map['is_accepted'] as String,
+      playerTeamCreatedAt: map['player_team_created_at'] as String,
+      playerTeamUpdatedAt: map['player_team_updated_at'] as String,
+      playerId: map['player_id'] as String,
+      publicPlayerId: map['public_player_id'] as String,
+      userId: map['user_id'] as String,
+      fullName: map['full_name'] as String,
+      profileImageUrl: map['profile_image_url'] as String,
+      gender: map['gender'] as String,
+      birthDate: map['birth_date'] as String,
+      playerAddress: map['player_address'] as String,
+      jerseyName: map['jersey_name'] as String,
+      jerseyNumber: map['jersey_number'] as int,
+      position: List<String>.from(map['position'] as List),
+      heightIn: map['height_in'] as int,
+      weightKg: map['weight_kg'] as int,
+      totalGamesPlayed: map['total_games_played'] as int,
+      totalPointsScored: map['total_points_scored'] as int,
+      totalAssists: map['total_assists'] as int,
+      totalRebounds: map['total_rebounds'] as int,
+      totalJoinLeague: map['total_join_league'] as int,
+      isBan: map['is_ban'] as bool,
+      isAllowed: map['is_allowed'] as bool,
+      validDocuments: map['valid_documents'] != null
+          ? List<String>.from(map['valid_documents'] as List)
+          : null,
+      user: User.fromMap(map['user'] as Map<String, dynamic>),
+      playerCreatedAt: map['player_created_at'] as String,
+      playerUpdatedAt: map['player_updated_at'] as String,
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
-      'player_team_id': player_team_id,
-      'team_id': team_id,
-      'is_ban': is_ban,
-      'is_accepted': is_accepted,
-      'player_id': player_id,
-      'user_id': user_id,
-      'full_name': full_name,
-      'gender': gender,
-      'birth_date': birth_date,
-      'player_address': player_address,
-      'jersey_name': jersey_name,
-      'jersey_number': jersey_number,
-      'position': position,
-      'height_in': height_in,
-      'weight_kg': weight_kg,
-      'total_games_played': total_games_played,
-      'total_points_scored': total_points_scored,
-      'total_assists': total_assists,
-      'total_rebounds': total_rebounds,
-      'profile_image_url': profile_image_url,
-      'user': user.toMap(),
+      ...super.toMap(),
+      'player_team_id': playerTeamId,
+      'team_id': teamId,
+      'is_team_captain': isTeamCaptain,
+      'is_accepted': isAccepted,
+      'player_team_created_at': playerTeamCreatedAt,
+      'player_team_updated_at': playerTeamUpdatedAt,
+    };
+  }
+}
+
+class LeaguePlayer extends PlayerTeam {
+  final String leaguePlayerId;
+  final String leagueId;
+  final String leagueCategoryId;
+  final String leagueTeamId;
+  final int totalPoints;
+  final bool isBanInLeague;
+  final bool isAllowedInLeague;
+  final LeagueTeam leagueTeam;
+  final String leaguePlayerCreatedAt;
+  final String leaguePlayerUpdatedAt;
+
+  LeaguePlayer({
+    required this.leaguePlayerId,
+    required this.leagueId,
+    required this.leagueCategoryId,
+    required this.leagueTeamId,
+    required this.totalPoints,
+    required this.isBanInLeague,
+    required this.isAllowedInLeague,
+    required this.leagueTeam,
+    required this.leaguePlayerCreatedAt,
+    required this.leaguePlayerUpdatedAt,
+    required super.playerTeamId,
+    required super.teamId,
+    required super.isTeamCaptain,
+    required super.isAccepted,
+    required super.playerTeamCreatedAt,
+    required super.playerTeamUpdatedAt,
+    required super.playerId,
+    required super.publicPlayerId,
+    required super.userId,
+    required super.fullName,
+    required super.profileImageUrl,
+    required super.gender,
+    required super.birthDate,
+    required super.playerAddress,
+    required super.jerseyName,
+    required super.jerseyNumber,
+    required super.position,
+    required super.heightIn,
+    required super.weightKg,
+    required super.totalGamesPlayed,
+    required super.totalPointsScored,
+    required super.totalAssists,
+    required super.totalRebounds,
+    required super.totalJoinLeague,
+    required super.isBan,
+    required super.isAllowed,
+    super.validDocuments,
+    required super.user,
+    required super.playerCreatedAt,
+    required super.playerUpdatedAt,
+  });
+
+  factory LeaguePlayer.fromMap(Map<String, dynamic> map) {
+    return LeaguePlayer(
+      leaguePlayerId: map['league_player_id'] as String,
+      leagueId: map['league_id'] as String,
+      leagueCategoryId: map['league_category_id'] as String,
+      leagueTeamId: map['league_team_id'] as String,
+      totalPoints: map['total_points'] as int,
+      isBanInLeague: map['is_ban_in_league'] as bool,
+      isAllowedInLeague: map['is_allowed_in_league'] as bool,
+      leagueTeam: LeagueTeam.fromMap(
+        map['league_team'] as Map<String, dynamic>,
+      ),
+      leaguePlayerCreatedAt: map['league_player_created_at'] as String,
+      leaguePlayerUpdatedAt: map['league_player_updated_at'] as String,
+      playerTeamId: map['player_team_id'] as String,
+      teamId: map['team_id'] as String,
+      isTeamCaptain: map['is_team_captain'] as bool,
+      isAccepted: map['is_accepted'] as String,
+      playerTeamCreatedAt: map['player_team_created_at'] as String,
+      playerTeamUpdatedAt: map['player_team_updated_at'] as String,
+      playerId: map['player_id'] as String,
+      publicPlayerId: map['public_player_id'] as String,
+      userId: map['user_id'] as String,
+      fullName: map['full_name'] as String,
+      profileImageUrl: map['profile_image_url'] as String,
+      gender: map['gender'] as String,
+      birthDate: map['birth_date'] as String,
+      playerAddress: map['player_address'] as String,
+      jerseyName: map['jersey_name'] as String,
+      jerseyNumber: map['jersey_number'] as int,
+      position: List<String>.from(map['position'] as List),
+      heightIn: map['height_in'] as int,
+      weightKg: map['weight_kg'] as int,
+      totalGamesPlayed: map['total_games_played'] as int,
+      totalPointsScored: map['total_points_scored'] as int,
+      totalAssists: map['total_assists'] as int,
+      totalRebounds: map['total_rebounds'] as int,
+      totalJoinLeague: map['total_join_league'] as int,
+      isBan: map['is_ban'] as bool,
+      isAllowed: map['is_allowed'] as bool,
+      validDocuments: map['valid_documents'] != null
+          ? List<String>.from(map['valid_documents'] as List)
+          : null,
+      user: User.fromMap(map['user'] as Map<String, dynamic>),
+      playerCreatedAt: map['player_created_at'] as String,
+      playerUpdatedAt: map['player_updated_at'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      'league_player_id': leaguePlayerId,
+      'league_id': leagueId,
+      'league_category_id': leagueCategoryId,
+      'league_team_id': leagueTeamId,
+      'total_points': totalPoints,
+      'is_ban_in_league': isBanInLeague,
+      'is_allowed_in_league': isAllowedInLeague,
+      'league_team': leagueTeam.toMap(),
+      'league_player_created_at': leaguePlayerCreatedAt,
+      'league_player_updated_at': leaguePlayerUpdatedAt,
     };
   }
 }

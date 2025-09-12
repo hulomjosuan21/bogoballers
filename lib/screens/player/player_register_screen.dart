@@ -1,8 +1,5 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/data/static_data.dart';
-import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/services/player/player_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
@@ -13,6 +10,7 @@ import 'package:bogoballers/core/widget/image_picker.dart';
 import 'package:bogoballers/core/widget/password_field.dart';
 import 'package:bogoballers/core/widget/phone_number_input.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:dio/dio.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -452,26 +450,24 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
 
       final messaging = FirebaseMessaging.instance;
 
-      String? fcm_token = await messaging.getToken();
+      String? fcmToken = await messaging.getToken();
 
-      final CreatePlayer data = CreatePlayer(
-        email: emailController.text,
-        password_str: passwordController.text,
-        contact_number: phoneNumber!,
-        full_name: fullNameController.text,
-        gender: selectedGender.value.toString(),
-        birth_date: selectedBirthDate!.toIso8601String(),
-        player_address: selectedBarangay!,
-        jersey_name: jerseyNameController.text,
-        jersey_number: double.parse(jerseyNumberController.text),
-        position: positions,
-        profile_image: multipartFile!,
-        fcm_token: fcm_token,
-      );
+      final formData = FormData.fromMap({
+        "email": emailController.text,
+        "password_str": passwordController.text,
+        "contact_number": phoneNumber!,
+        "full_name": fullNameController.text,
+        "gender": selectedGender.value.toString(),
+        "birth_date": selectedBirthDate!.toIso8601String(),
+        "player_address": selectedBarangay!,
+        "jersey_name": jerseyNameController.text,
+        "jersey_number": double.parse(jerseyNumberController.text),
+        "position": positions,
+        "profile_image": multipartFile,
+        "fcm_token": fcmToken,
+      });
 
-      final response = await PlayerService.createNewPlayer(
-        data.toFormDataForCreation(),
-      );
+      final response = await PlayerService.createNewPlayer(formData);
 
       if (mounted) {
         showAppSnackbar(

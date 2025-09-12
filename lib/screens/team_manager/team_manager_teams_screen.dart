@@ -61,21 +61,21 @@ class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(Sizes.radiusSm),
                     child: Image.network(
-                      team.team_logo_url,
+                      team.teamLogoUrl,
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
                     ),
                   ),
                   title: Text(
-                    team.team_name,
+                    team.teamName,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
                   ),
                   subtitle: Text(
-                    team.team_motto ?? "No Data",
+                    team.teamMotto ?? "No Data",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: colors.gray8, fontSize: 11),
@@ -83,8 +83,8 @@ class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
                   onTap: () {
                     if (widget.selectMode) {
                       Navigator.pop(context, {
-                        'teamId': team.team_id,
-                        'teamLogoUrl': team.team_logo_url,
+                        'teamId': team.teamId,
+                        'teamLogoUrl': team.teamLogoUrl,
                       });
                     } else {
                       Navigator.push(
