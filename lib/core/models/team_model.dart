@@ -139,7 +139,7 @@ class LeagueTeam extends Team {
   final String leagueCategoryId;
   final String status;
   final bool isEliminated;
-  final int amountPaid;
+  final double amountPaid;
   final String paymentStatus;
   final int wins;
   final int losses;
@@ -199,7 +199,7 @@ class LeagueTeam extends Team {
       leagueCategoryId: map['league_category_id'] as String,
       status: map['status'] as String,
       isEliminated: map['is_eliminated'] as bool,
-      amountPaid: map['amount_paid'] as int,
+      amountPaid: map['amount_paid'] as double,
       paymentStatus: map['payment_status'] as String,
       wins: map['wins'] as int,
       losses: map['losses'] as int,

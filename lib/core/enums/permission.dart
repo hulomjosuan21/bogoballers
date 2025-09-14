@@ -1,14 +1,26 @@
-enum Permission { invitePlayer, joinTeam, joinLeague, joinLeagueAsTeam }
+enum Permission {
+  invitePlayer,
+  joinTeam,
+  joinLeague,
+  joinLeagueAsTeam,
+  editPlayerProfile,
+  viewNotRoster,
+}
 
 List<Permission> userPermission(String? accountType) {
   switch (accountType) {
     case 'Player':
-      return [Permission.joinTeam, Permission.joinLeague];
+      return [
+        Permission.joinTeam,
+        Permission.joinLeague,
+        Permission.editPlayerProfile,
+      ];
     case 'Team_Manager':
       return [
         Permission.invitePlayer,
         Permission.joinLeague,
         Permission.joinLeagueAsTeam,
+        Permission.viewNotRoster,
       ];
     default:
       return [];

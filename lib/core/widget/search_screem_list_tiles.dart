@@ -7,7 +7,7 @@ import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/screens/league_admin_screen.dart';
 import 'package:bogoballers/screens/league_screen.dart';
 import 'package:bogoballers/screens/player_screen.dart';
-import 'package:bogoballers/screens/team_screen.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_team_screen.dart';
 import 'package:flutter/material.dart';
 
 abstract class BaseSearchResultScreen<T> {
@@ -110,7 +110,7 @@ class TeamSearchResultListTile extends StatelessWidget
         context,
         MaterialPageRoute(
           builder: (context) =>
-              TeamScreen(permissions: permissions, result: result),
+              TeamManagerTeamScreen(permissions: permissions, team: result),
         ),
       ),
     );

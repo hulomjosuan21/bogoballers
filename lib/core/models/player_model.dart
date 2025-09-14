@@ -11,10 +11,10 @@ class Player {
   final String birthDate;
   final String playerAddress;
   final String jerseyName;
-  final int jerseyNumber;
+  final double jerseyNumber;
   final List<String> position;
-  final int heightIn;
-  final int weightKg;
+  final double heightIn;
+  final double weightKg;
   final int totalGamesPlayed;
   final int totalPointsScored;
   final int totalAssists;
@@ -65,10 +65,10 @@ class Player {
       birthDate: map['birth_date'] as String,
       playerAddress: map['player_address'] as String,
       jerseyName: map['jersey_name'] as String,
-      jerseyNumber: map['jersey_number'] as int,
+      jerseyNumber: map['jersey_number'] as double,
       position: List<String>.from(map['position'] as List),
-      heightIn: map['height_in'] as int,
-      weightKg: map['weight_kg'] as int,
+      heightIn: map['height_in'] as double,
+      weightKg: map['weight_kg'] as double,
       totalGamesPlayed: map['total_games_played'] as int,
       totalPointsScored: map['total_points_scored'] as int,
       totalAssists: map['total_assists'] as int,
@@ -173,10 +173,10 @@ class PlayerTeam extends Player {
       birthDate: map['birth_date'] as String,
       playerAddress: map['player_address'] as String,
       jerseyName: map['jersey_name'] as String,
-      jerseyNumber: map['jersey_number'] as int,
+      jerseyNumber: map['jersey_number'] as double,
       position: List<String>.from(map['position'] as List),
-      heightIn: map['height_in'] as int,
-      weightKg: map['weight_kg'] as int,
+      heightIn: map['height_in'] as double,
+      weightKg: map['weight_kg'] as double,
       totalGamesPlayed: map['total_games_played'] as int,
       totalPointsScored: map['total_points_scored'] as int,
       totalAssists: map['total_assists'] as int,
@@ -291,10 +291,10 @@ class LeaguePlayer extends PlayerTeam {
       birthDate: map['birth_date'] as String,
       playerAddress: map['player_address'] as String,
       jerseyName: map['jersey_name'] as String,
-      jerseyNumber: map['jersey_number'] as int,
+      jerseyNumber: map['jersey_number'] as double,
       position: List<String>.from(map['position'] as List),
-      heightIn: map['height_in'] as int,
-      weightKg: map['weight_kg'] as int,
+      heightIn: map['height_in'] as double,
+      weightKg: map['weight_kg'] as double,
       totalGamesPlayed: map['total_games_played'] as int,
       totalPointsScored: map['total_points_scored'] as int,
       totalAssists: map['total_assists'] as int,

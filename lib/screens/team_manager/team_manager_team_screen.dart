@@ -1,13 +1,23 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
-import 'package:bogoballers/screens/team_manager/team_manager_player_team_screen.dart';
+import 'package:bogoballers/core/services/entity_service.dart';
+import 'package:bogoballers/core/services/player/player_team_service.dart';
+import 'package:bogoballers/core/utils/error_handler.dart';
+import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:bogoballers/screens/player_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:getwidget/components/button/gf_button.dart';
 
 class TeamManagerTeamScreen extends StatefulWidget {
-  const TeamManagerTeamScreen({super.key, required this.team});
-
+  final List<Permission> permissions;
+  const TeamManagerTeamScreen({
+    super.key,
+    required this.permissions,
+    required this.team,
+  });
   final Team team;
 
   @override
@@ -15,206 +25,320 @@ class TeamManagerTeamScreen extends StatefulWidget {
 }
 
 class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
+  bool _isEditing = false;
+  late final TextEditingController _teamNameController;
+  bool isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _teamNameController = TextEditingController(text: widget.team.teamName);
+  }
+
+  @override
+  void dispose() {
+    _teamNameController.dispose();
+    super.dispose();
+  }
+
+  void _handleSaveChanges() {
+    final Map<String, dynamic> changes = {};
+    if (_teamNameController.text != widget.team.teamName) {
+      changes['team_name'] = _teamNameController.text;
+    }
+
+    if (changes.isNotEmpty) {
+      debugPrint("Saving changes: $changes");
+    } else {
+      debugPrint("No changes were made.");
+    }
+
+    setState(() => _isEditing = false);
+  }
+
+  Future<void> _handleJoin() async {
+    setState(() => isProcessing = true);
+    try {
+      final entity = await getEntityCredentialsFromStorage();
+
+      final response = await PlayerTeamService.addPlayer(
+        teamId: widget.team.teamId,
+        playerId: entity.entityId,
+        status: "Pending",
+      );
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: response.message,
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: ErrorHandler.getErrorMessage(e),
+          title: "Error",
+          variant: SnackbarVariant.error,
+        );
+      }
+    } finally {
+      setState(() => isProcessing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final textTheme = Theme.of(context).textTheme;
 
     return DefaultTabController(
-      length: 2,
+      length: 2, // For Pending & Invited
       child: Scaffold(
+        backgroundColor: colors.background,
         appBar: AppBar(
           centerTitle: true,
-          title: Text(widget.team.teamName),
+          title: Text(_isEditing ? "Edit Team" : "Team"),
+          flexibleSpace: Container(color: colors.gray1),
           actions: [
             PopupMenuButton<String>(
               onSelected: (value) {
-                switch (value) {
-                  case 'player_request':
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlayerPendingRequestScreen(
-                          players: widget.team.pendingPlayers,
-                        ),
-                      ),
-                    );
-                    break;
+                if (value == 'edit_team') {
+                  setState(() => _isEditing = true);
+                } else if (value == 'save_team') {
+                  _handleSaveChanges();
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'player_request',
-                  child: Text('Player Request'),
-                ),
+                if (_isEditing)
+                  const PopupMenuItem(
+                    value: 'save_team',
+                    child: Text('Save Changes'),
+                  )
+                else
+                  const PopupMenuItem(
+                    value: 'edit_team',
+                    child: Text('Edit Team'),
+                  ),
               ],
             ),
           ],
         ),
-
         body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: Sizes.spaceMd),
+          padding: const EdgeInsets.all(Sizes.spaceMd),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: SizedBox(
-                  width: 200,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Image.network(
-                        widget.team.teamLogoUrl,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
+              _buildTeamHeader(colors, textTheme),
+              if (hasPermissions(
+                widget.permissions,
+                required: [Permission.joinTeam],
+                mode: 'all',
+              ))
+                GFButton(
+                  onPressed: isProcessing ? null : _handleJoin,
+                  text: "Join",
+                  color: colors.color9,
                 ),
-              ),
-
-              const SizedBox(height: Sizes.spaceSm),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  StatCell(
-                    value: widget.team.totalDraws.toString(),
-                    label: 'Losses',
-                  ),
-                  SizedBox(
-                    height: 32,
-                    child: VerticalDivider(
-                      thickness: 1,
-                      width: 24,
-                      color: colors.gray6,
-                    ),
-                  ),
-                  StatCell(
-                    value: widget.team.totalDraws.toString(),
-                    label: 'Draws',
-                  ),
-                  SizedBox(
-                    height: 32,
-                    child: VerticalDivider(
-                      thickness: 1,
-                      width: 24,
-                      color: colors.gray6,
-                    ),
-                  ),
-                  StatCell(
-                    value: widget.team.totalPoints.toString(),
-                    label: 'Points',
-                  ),
-                ],
-              ),
               const SizedBox(height: Sizes.spaceLg),
+              _buildStatsRow(colors),
+              const SizedBox(height: Sizes.spaceLg),
+              _buildRosterList(colors),
+              const SizedBox(height: Sizes.spaceLg),
+              if (hasPermissions(
+                widget.permissions,
+                required: [Permission.viewNotRoster],
+              ))
+                _buildRequestTabs(colors),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              const Text(
-                "Players",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 8),
-              TabBar(
-                labelColor: colors.color9,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: colors.color9,
-                dividerColor: Colors.transparent,
-                tabs: const [
-                  Tab(text: "Players"),
-                  Tab(text: "Invited"),
-                ],
-              ),
-              Container(
-                color: colors.gray2,
-                height: 400,
-                child: TabBarView(
-                  children: [
-                    ListView.builder(
-                      itemCount: widget.team.acceptedPlayers.length,
-                      itemBuilder: (context, index) {
-                        final player = widget.team.acceptedPlayers[index];
-                        return ListTile(
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(Sizes.radiusSm),
-                            child: Image.network(
-                              widget.team.teamLogoUrl,
-                              width: 48,
-                              height: 48,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          title: Text(
-                            player.fullName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                          subtitle: Text(
-                            "${player.jerseyName} | #${player.jerseyNumber.toStringAsFixed(0)}",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: colors.gray8, fontSize: 11),
-                          ),
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlayerTeamScreen(
-                                onTeamScreen: false,
-                                player: player,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    ListView.builder(
-                      itemCount: widget.team.invitedPlayers.length,
-                      itemBuilder: (context, index) {
-                        final player = widget.team.invitedPlayers[index];
-                        return ListTile(
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(Sizes.radiusSm),
-                            child: Image.network(
-                              player.profileImageUrl,
-                              width: 48,
-                              height: 48,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          title: Text(
-                            player.fullName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                          subtitle: Text(
-                            "${player.jerseyName} | #${player.jerseyNumber.toStringAsFixed(0)}",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: colors.gray8, fontSize: 11),
-                          ),
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlayerTeamScreen(
-                                onTeamScreen: false,
-                                player: player,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+  Widget _buildTeamHeader(AppThemeColors colors, TextTheme textTheme) {
+    return Column(
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Sizes.radiusMd),
+            image: DecorationImage(
+              image: NetworkImage(widget.team.teamLogoUrl),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(height: Sizes.spaceMd),
+        _isEditing
+            ? TextField(
+                controller: _teamNameController,
+                textAlign: TextAlign.center,
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
+                  fontSize: Sizes.fontSizeSm,
                 ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 8.0,
+                  ),
+                ),
+              )
+            : Text(
+                _teamNameController.text,
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
+                  fontSize: Sizes.fontSizeMd,
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget _buildStatsRow(AppThemeColors colors) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: Sizes.spaceMd),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(Sizes.radiusMd),
+        border: Border.all(color: colors.gray5, width: Sizes.borderWidthSm),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          StatCell(value: widget.team.totalWins.toString(), label: 'Wins'),
+          SizedBox(
+            height: 32,
+            child: VerticalDivider(thickness: 1, color: colors.gray5),
+          ),
+          StatCell(value: widget.team.totalLosses.toString(), label: 'Losses'),
+          SizedBox(
+            height: 32,
+            child: VerticalDivider(thickness: 1, color: colors.gray5),
+          ),
+          StatCell(value: widget.team.totalDraws.toString(), label: 'Draws'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRequestTabs(AppThemeColors colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TabBar(
+          labelColor: colors.color9,
+          unselectedLabelColor: colors.textSecondary,
+          indicatorColor: colors.color9,
+          dividerColor: colors.gray4,
+          tabs: const [
+            Tab(text: "Pending Requests"),
+            Tab(text: "Invited Players"),
+          ],
+        ),
+        SizedBox(
+          height: 200,
+          child: TabBarView(
+            children: [
+              ListView.builder(
+                itemCount: widget.team.pendingPlayers.length,
+                itemBuilder: (context, index) {
+                  final player = widget.team.pendingPlayers[index];
+                  return _PlayerListItem(player: player);
+                },
+              ),
+              ListView.builder(
+                itemCount: widget.team.invitedPlayers.length,
+                itemBuilder: (context, index) {
+                  final player = widget.team.invitedPlayers[index];
+                  return _PlayerListItem(player: player);
+                },
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildRosterList(AppThemeColors colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          "Team Roster",
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: colors.textPrimary,
+            fontSize: Sizes.fontSizeLg,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: Sizes.spaceSm),
+        ListView.builder(
+          itemCount: widget.team.acceptedPlayers.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final player = widget.team.acceptedPlayers[index];
+            return _PlayerListItem(player: player);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _PlayerListItem extends StatelessWidget {
+  const _PlayerListItem({required this.player});
+  final PlayerTeam player;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    return Card(
+      color: colors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Sizes.radiusMd),
+        side: BorderSide(color: colors.gray4, width: Sizes.borderWidthSm),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: Sizes.spaceXs),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundImage: NetworkImage(player.profileImageUrl),
+          backgroundColor: colors.gray4,
+        ),
+        title: Text(
+          player.fullName,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: colors.textPrimary,
+          ),
+        ),
+        subtitle: Text(
+          '#${player.jerseyNumber.toInt()} | ${player.jerseyName}',
+          style: TextStyle(
+            color: colors.textSecondary,
+            fontSize: Sizes.fontSizeSm,
+          ),
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  PlayerScreen(permissions: const [], result: player),
+            ),
+          );
+        },
       ),
     );
   }
@@ -227,63 +351,27 @@ class StatCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: Sizes.fontSizeLg,
+            fontWeight: FontWeight.bold,
+            color: colors.textPrimary,
+          ),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: Sizes.spaceXs),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: Sizes.fontSizeSm,
+            color: colors.textSecondary,
+          ),
+        ),
       ],
-    );
-  }
-}
-
-class PlayerPendingRequestScreen extends StatelessWidget {
-  final List<PlayerTeam> players;
-  const PlayerPendingRequestScreen({super.key, required this.players});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-    return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text("Player Request")),
-      body: ListView.builder(
-        itemCount: players.length,
-        itemBuilder: (context, index) {
-          final player = players[index];
-          return ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(Sizes.radiusSm),
-              child: Image.network(
-                player.profileImageUrl,
-                width: 48,
-                height: 48,
-                fit: BoxFit.cover,
-              ),
-            ),
-            title: Text(
-              player.fullName,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            subtitle: Text(
-              "${player.jerseyName} | #${player.jerseyNumber.toStringAsFixed(0)}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: colors.gray8, fontSize: 11),
-            ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    PlayerTeamScreen(onTeamScreen: false, player: player),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

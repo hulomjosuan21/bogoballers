@@ -1,5 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/providers/team_provider.dart';
+import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_create_team_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_team_screen.dart';
@@ -16,13 +18,20 @@ class TeamManagerTeamsScreen extends ConsumerStatefulWidget {
 }
 
 class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
+  String? accountType;
+
   @override
   void initState() {
     super.initState();
-
+    _getAccountTypeFromStorage();
     Future.microtask(() {
       ref.invalidate(teamsProvider);
     });
+  }
+
+  Future<void> _getAccountTypeFromStorage() async {
+    final entity = await getEntityCredentialsFromStorageOrNull();
+    accountType = entity?.accountType;
   }
 
   @override
@@ -90,7 +99,10 @@ class _TeamsScreenState extends ConsumerState<TeamManagerTeamsScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => TeamManagerTeamScreen(team: team),
+                          builder: (_) => TeamManagerTeamScreen(
+                            permissions: userPermission(accountType),
+                            team: team,
+                          ),
                         ),
                       );
                     }
