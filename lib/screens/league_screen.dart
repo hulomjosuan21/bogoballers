@@ -1,8 +1,12 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/league_model.dart';
+import 'package:bogoballers/core/services/league/league_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/utils/error_handler.dart';
 import 'package:bogoballers/core/widget/info_tile.dart';
+import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:intl/intl.dart';
@@ -206,7 +210,6 @@ class LeagueScreen extends StatelessWidget {
     );
   }
 
-  // ... Similar list builders for Referees, Courts, and Affiliates
   Widget _buildRefereeList(
     BuildContext context,
     List<LeagueReferee> referees,
@@ -219,9 +222,7 @@ class LeagueScreen extends StatelessWidget {
   ) => Container();
 }
 
-// --- League Category Screen ---
-
-class LeagueCategoryScreen extends StatelessWidget {
+class LeagueCategoryScreen extends StatefulWidget {
   final LeagueCategory leagueCategory;
   final List<Permission> permissions;
 
@@ -232,6 +233,92 @@ class LeagueCategoryScreen extends StatelessWidget {
   });
 
   @override
+  State<LeagueCategoryScreen> createState() => _LeagueCategoryScreenState();
+}
+
+class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
+  bool isProcessing = false;
+
+  Future<void> onPressed() async {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const TeamManagerTeamsScreen(selectMode: true),
+      ),
+    );
+
+    if (result == null) return;
+    if (!mounted) return;
+    final paymentMethod = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Select Payment Method"),
+          content: const Text("Do you want to pay online or on-site?"),
+          actions: [
+            GFButton(
+              onPressed: () => Navigator.pop(context, "on-site"),
+              text: "On-site",
+              size: GFSize.SMALL,
+              type: GFButtonType.outline,
+              color: colors.color9,
+            ),
+            GFButton(
+              onPressed: () => Navigator.pop(context, "online"),
+              text: "Online",
+              color: colors.color9,
+              size: GFSize.SMALL,
+            ),
+          ],
+        );
+      },
+    );
+
+    if (paymentMethod == null) return;
+
+    setState(() => isProcessing = true);
+
+    Map<String, dynamic> data = {
+      "team_id": result['teamId'],
+      "league_id": widget.leagueCategory.leagueId,
+      "league_category_id": widget.leagueCategory.leagueCategoryId,
+      "amount_paid": widget.leagueCategory.teamEntranceFeeAmount,
+      "payment_method": paymentMethod,
+    };
+
+    try {
+      final response = await LeagueService.registerTeam(data);
+      final payload = response.data["payload"];
+
+      if (payload != null && payload["checkout_url"] != null) {
+        final checkoutUrl = payload["checkout_url"];
+      } else {
+        if (!mounted) return;
+        showAppSnackbar(
+          context,
+          message: response.data["message"],
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: ErrorHandler.getErrorMessage(e),
+          title: "Error",
+          variant: SnackbarVariant.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isProcessing = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Scaffold(
@@ -239,7 +326,7 @@ class LeagueCategoryScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          leagueCategory.categoryName,
+          widget.leagueCategory.categoryName,
           style: TextStyle(color: colors.textPrimary),
         ),
         backgroundColor: colors.surface,
@@ -259,20 +346,20 @@ class LeagueCategoryScreen extends StatelessWidget {
                   colors: colors,
                   icon: Icons.groups_outlined,
                   label: 'Max Teams',
-                  value: leagueCategory.maxTeam.toString(),
+                  value: widget.leagueCategory.maxTeam.toString(),
                 ),
                 InfoTile(
                   colors: colors,
                   icon: Icons.person_search_outlined,
                   label: 'Gender',
-                  value: leagueCategory.playerGender,
+                  value: widget.leagueCategory.playerGender,
                 ),
                 InfoTile(
                   colors: colors,
                   icon: Icons.cake_outlined,
                   label: 'Age Requirement',
-                  value: leagueCategory.checkPlayerAge
-                      ? '${leagueCategory.playerMinAge ?? 'Any'} - ${leagueCategory.playerMaxAge ?? 'Any'} years old'
+                  value: widget.leagueCategory.checkPlayerAge
+                      ? '${widget.leagueCategory.playerMinAge ?? 'Any'} - ${widget.leagueCategory.playerMaxAge ?? 'Any'} years old'
                       : 'No age restriction',
                 ),
                 InfoTile(
@@ -280,21 +367,23 @@ class LeagueCategoryScreen extends StatelessWidget {
                   icon: Icons.attach_money_outlined,
                   label: 'Entrance Fee',
                   value:
-                      '₱${leagueCategory.teamEntranceFeeAmount.toStringAsFixed(2)}',
+                      '₱${widget.leagueCategory.teamEntranceFeeAmount.toStringAsFixed(2)}',
                 ),
                 InfoTile(
                   colors: colors,
                   icon: Icons.policy_outlined,
                   label: 'Requires Documents',
-                  value: leagueCategory.requiresValidDocument ? 'Yes' : 'No',
+                  value: widget.leagueCategory.requiresValidDocument
+                      ? 'Yes'
+                      : 'No',
                 ),
-                if (leagueCategory.requiresValidDocument &&
-                    leagueCategory.allowedDocuments != null)
+                if (widget.leagueCategory.requiresValidDocument &&
+                    widget.leagueCategory.allowedDocuments != null)
                   InfoTile(
                     colors: colors,
                     icon: Icons.description_outlined,
                     label: 'Allowed Documents',
-                    value: leagueCategory.allowedDocuments!.join(', '),
+                    value: widget.leagueCategory.allowedDocuments!.join(', '),
                   ),
               ],
             ),
@@ -304,7 +393,7 @@ class LeagueCategoryScreen extends StatelessWidget {
               title: 'Tournament Rounds',
               icon: Icons.emoji_events_outlined,
               children: [
-                if (leagueCategory.rounds.isEmpty)
+                if (widget.leagueCategory.rounds.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(Sizes.spaceMd),
                     child: Text(
@@ -313,7 +402,7 @@ class LeagueCategoryScreen extends StatelessWidget {
                     ),
                   )
                 else
-                  ...leagueCategory.rounds.map(
+                  ...widget.leagueCategory.rounds.map(
                     (round) => ListTile(
                       title: Text(
                         round.roundName,
@@ -326,7 +415,7 @@ class LeagueCategoryScreen extends StatelessWidget {
             ),
             const SizedBox(height: Sizes.spaceLg),
             if (hasPermissions(
-              permissions,
+              widget.permissions,
               required: [Permission.joinLeague, Permission.joinLeagueAsTeam],
             ))
               GFButton(
@@ -338,7 +427,7 @@ class LeagueCategoryScreen extends StatelessWidget {
                 ),
                 color: colors.color9,
                 blockButton: true,
-                size: GFSize.LARGE,
+                size: GFSize.MEDIUM,
               ),
           ],
         ),
