@@ -1,9 +1,12 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/league_admin_model.dart';
+import 'package:bogoballers/core/models/message.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/widget/info_tile.dart';
+import 'package:bogoballers/screens/chat_loader.dart';
 import 'package:flutter/material.dart';
+import 'package:getwidget/getwidget.dart';
 import 'package:intl/intl.dart';
 
 class LeagueAdministratorScreen extends StatelessWidget {
@@ -34,6 +37,31 @@ class LeagueAdministratorScreen extends StatelessWidget {
           children: [
             _buildAdminHeader(context, result),
             const SizedBox(height: Sizes.spaceLg),
+
+            Row(
+              children: [
+                GFButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatLoaderScreen(
+                          partner: ConversationWith(
+                            name: result.organizationName,
+                            entityId: result.leagueAdministratorId,
+                            imageUrl: result.organizationLogoUrl,
+                            userId: result.account.userId,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  text: "Chat",
+                  color: colors.color9,
+                  size: GFSize.SMALL,
+                ),
+              ],
+            ),
 
             _buildInfoCard(
               context,

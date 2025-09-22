@@ -37,6 +37,7 @@ class InfoTile extends StatelessWidget {
           const Spacer(),
           Text(
             value ?? 'N/A',
+            overflow: TextOverflow.fade,
             style: TextStyle(
               fontSize: Sizes.fontSizeSm,
               fontWeight: FontWeight.bold,

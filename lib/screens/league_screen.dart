@@ -10,6 +10,7 @@ import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:intl/intl.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class LeagueScreen extends StatelessWidget {
   final List<Permission> permissions;
@@ -116,11 +117,14 @@ class LeagueScreen extends StatelessWidget {
               title: 'Categories',
               icon: Icons.category_outlined,
               children: [
-                if (result.leagueCategories.isEmpty)
+                if (result.leagueCategories.isEmpty ||
+                    result.status == 'Pending')
                   Padding(
                     padding: const EdgeInsets.all(Sizes.spaceMd),
                     child: Text(
-                      'No categories available for this league yet.',
+                      result.status != 'Pending'
+                          ? 'No categories available for this league yet.'
+                          : 'League is pending not yet approved',
                       style: TextStyle(color: colors.textSecondary),
                     ),
                   )
@@ -241,15 +245,15 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
 
   Future<void> onPressed() async {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => const TeamManagerTeamsScreen(selectMode: true),
       ),
     );
+    if (result == null || !mounted) return;
 
-    if (result == null) return;
-    if (!mounted) return;
     final paymentMethod = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -258,14 +262,14 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
           content: const Text("Do you want to pay online or on-site?"),
           actions: [
             GFButton(
-              onPressed: () => Navigator.pop(context, "on-site"),
+              onPressed: () => Navigator.pop(context, "Pay on site"),
               text: "On-site",
               size: GFSize.SMALL,
               type: GFButtonType.outline,
               color: colors.color9,
             ),
             GFButton(
-              onPressed: () => Navigator.pop(context, "online"),
+              onPressed: () => Navigator.pop(context, "Pay online"),
               text: "Online",
               color: colors.color9,
               size: GFSize.SMALL,
@@ -274,47 +278,58 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
         );
       },
     );
-
     if (paymentMethod == null) return;
 
     setState(() => isProcessing = true);
 
-    Map<String, dynamic> data = {
+    final data = {
       "team_id": result['teamId'],
       "league_id": widget.leagueCategory.leagueId,
       "league_category_id": widget.leagueCategory.leagueCategoryId,
-      "amount_paid": widget.leagueCategory.teamEntranceFeeAmount,
       "payment_method": paymentMethod,
+      if (paymentMethod == "Pay online")
+        "amount": widget.leagueCategory.teamEntranceFeeAmount,
     };
 
     try {
       final response = await LeagueService.registerTeam(data);
-      final payload = response.data["payload"];
+      final responseData = response.data;
 
-      if (payload != null && payload["checkout_url"] != null) {
-        final checkoutUrl = payload["checkout_url"];
+      if (paymentMethod == "Pay online" &&
+          responseData['checkout_url'] != null) {
+        if (!mounted) return;
+        showAppSnackbar(
+          context,
+          message: responseData['message'],
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+        await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                PaymentWebViewPage(checkoutUrl: responseData['checkout_url']),
+          ),
+        );
       } else {
         if (!mounted) return;
         showAppSnackbar(
           context,
-          message: response.data["message"],
+          message: responseData['message'],
           title: "Success",
           variant: SnackbarVariant.success,
         );
       }
     } catch (e) {
-      if (mounted) {
-        showAppSnackbar(
-          context,
-          message: ErrorHandler.getErrorMessage(e),
-          title: "Error",
-          variant: SnackbarVariant.error,
-        );
-      }
+      if (!mounted) return;
+      showAppSnackbar(
+        context,
+        message: ErrorHandler.getErrorMessage(e),
+        title: "Error",
+        variant: SnackbarVariant.error,
+      );
     } finally {
-      if (mounted) {
-        setState(() => isProcessing = false);
-      }
+      if (mounted) setState(() => isProcessing = false);
     }
   }
 
@@ -419,7 +434,7 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
               required: [Permission.joinLeague, Permission.joinLeagueAsTeam],
             ))
               GFButton(
-                onPressed: () {},
+                onPressed: onPressed,
                 text: "Join Category",
                 textStyle: TextStyle(
                   color: colors.contrast,
@@ -531,6 +546,54 @@ class _CategoryListItem extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class PaymentWebViewPage extends StatefulWidget {
+  final String checkoutUrl;
+
+  const PaymentWebViewPage({super.key, required this.checkoutUrl});
+
+  @override
+  State<PaymentWebViewPage> createState() => _PaymentWebViewPageState();
+}
+
+class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
+  late final WebViewController _controller;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) => setState(() => isLoading = true),
+          onPageFinished: (_) => setState(() => isLoading = false),
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.checkoutUrl));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Payment"),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (isLoading) const Center(child: CircularProgressIndicator()),
+        ],
       ),
     );
   }
