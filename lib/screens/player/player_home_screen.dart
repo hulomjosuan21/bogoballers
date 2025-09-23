@@ -1,6 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/screens/league_match_list.dart';
 import 'package:bogoballers/screens/notification_screen.dart';
 import 'package:bogoballers/screens/search_screen.dart';
 import 'package:flutter/material.dart';
@@ -43,29 +44,33 @@ class PlayerHomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(Sizes.spaceMd),
-            child: TextField(
-              readOnly: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SearchScreen()),
-                );
-              },
-              decoration: InputDecoration(
-                hintText: "Search...",
-                helperText:
-                    "Find players, teams, leagues or league administrators",
-                suffixIcon: Icon(Icons.search, color: colors.gray11),
-                filled: true,
-                fillColor: colors.gray2,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Sizes.spaceMd),
+              child: TextField(
+                readOnly: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SearchScreen()),
+                  );
+                },
+                decoration: InputDecoration(
+                  hintText: "Search...",
+                  helperText:
+                      "Find players, teams, leagues or league administrators",
+                  suffixIcon: Icon(Icons.search, color: colors.gray11),
+                  filled: true,
+                  fillColor: colors.gray2,
+                ),
               ),
             ),
-          ),
-        ],
+            SizedBox(height: Sizes.spaceMd),
+            const LeagueMatchesList(),
+          ],
+        ),
       ),
     );
   }

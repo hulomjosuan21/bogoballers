@@ -1,4 +1,3 @@
-import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
 
 class Player {
@@ -64,16 +63,19 @@ class Player {
       gender: map['gender'] as String,
       birthDate: map['birth_date'] as String,
       playerAddress: map['player_address'] as String,
-      jerseyName: map['jersey_name'] as String,
-      jerseyNumber: map['jersey_number'] as double,
       position: List<String>.from(map['position'] as List),
-      heightIn: map['height_in'] as double,
-      weightKg: map['weight_kg'] as double,
-      totalGamesPlayed: map['total_games_played'] as int,
-      totalPointsScored: map['total_points_scored'] as int,
-      totalAssists: map['total_assists'] as int,
-      totalRebounds: map['total_rebounds'] as int,
-      totalJoinLeague: map['total_join_league'] as int,
+      jerseyName: map['jersey_name'] as String,
+      jerseyNumber: (map['jersey_number'] as num).toDouble(),
+      heightIn: (map['height_in'] as num).toDouble(),
+      weightKg: (map['weight_kg'] as num).toDouble(),
+
+      totalGamesPlayed: (map['total_games_played'] as num?)?.toInt() ?? 0,
+
+      totalPointsScored: (map['total_points_scored'] as num).toInt(),
+      totalAssists: (map['total_assists'] as num).toInt(),
+      totalRebounds: (map['total_rebounds'] as num).toInt(),
+      totalJoinLeague: (map['total_join_league'] as num).toInt(),
+
       isBan: map['is_ban'] as bool,
       isAllowed: map['is_allowed'] as bool,
       validDocuments: map['valid_documents'] != null
@@ -215,7 +217,6 @@ class LeaguePlayer extends PlayerTeam {
   final int totalPoints;
   final bool isBanInLeague;
   final bool isAllowedInLeague;
-  final LeagueTeam leagueTeam;
   final String leaguePlayerCreatedAt;
   final String leaguePlayerUpdatedAt;
 
@@ -227,7 +228,6 @@ class LeaguePlayer extends PlayerTeam {
     required this.totalPoints,
     required this.isBanInLeague,
     required this.isAllowedInLeague,
-    required this.leagueTeam,
     required this.leaguePlayerCreatedAt,
     required this.leaguePlayerUpdatedAt,
     required super.playerTeamId,
@@ -268,40 +268,53 @@ class LeaguePlayer extends PlayerTeam {
       leagueId: map['league_id'] as String,
       leagueCategoryId: map['league_category_id'] as String,
       leagueTeamId: map['league_team_id'] as String,
-      totalPoints: map['total_points'] as int,
-      isBanInLeague: map['is_ban_in_league'] as bool,
-      isAllowedInLeague: map['is_allowed_in_league'] as bool,
-      leagueTeam: LeagueTeam.fromMap(
-        map['league_team'] as Map<String, dynamic>,
-      ),
+      totalPoints: (map['total_points'] as num?)?.toInt() ?? 0,
+      isBanInLeague: map['is_ban_in_league'] as bool? ?? false,
+      isAllowedInLeague: map['is_allowed_in_league'] as bool? ?? true,
+
       leaguePlayerCreatedAt: map['league_player_created_at'] as String,
       leaguePlayerUpdatedAt: map['league_player_updated_at'] as String,
       playerTeamId: map['player_team_id'] as String,
       teamId: map['team_id'] as String,
-      isTeamCaptain: map['is_team_captain'] as bool,
-      isAccepted: map['is_accepted'] as String,
+
+      jerseyNumber:
+          (map['jersey_number'] as num?)?.toDouble() ?? 0.0, // Add null safety
+      heightIn:
+          (map['height_in'] as num?)?.toDouble() ?? 0.0, // Add null safety
+      weightKg:
+          (map['weight_kg'] as num?)?.toDouble() ?? 0.0, // Add null safety
+
+      totalGamesPlayed: (map['total_games_played'] as num?)?.toInt() ?? 0,
+      totalPointsScored:
+          (map['total_points_scored'] as num?)?.toInt() ?? 0, // Add null safety
+      totalAssists:
+          (map['total_assists'] as num?)?.toInt() ?? 0, // Add null safety
+      totalRebounds:
+          (map['total_rebounds'] as num?)?.toInt() ?? 0, // Add null safety
+      totalJoinLeague:
+          (map['total_join_league'] as num?)?.toInt() ?? 0, // Add null safety
+
+      isTeamCaptain:
+          map['is_team_captain'] as bool? ?? false, // Add null safety
+      isAccepted: map['is_accepted'] as String? ?? 'pending', // Add null safety
       playerTeamCreatedAt: map['player_team_created_at'] as String,
       playerTeamUpdatedAt: map['player_team_updated_at'] as String,
       playerId: map['player_id'] as String,
       publicPlayerId: map['public_player_id'] as String,
       userId: map['user_id'] as String,
-      fullName: map['full_name'] as String,
-      profileImageUrl: map['profile_image_url'] as String,
-      gender: map['gender'] as String,
-      birthDate: map['birth_date'] as String,
-      playerAddress: map['player_address'] as String,
-      jerseyName: map['jersey_name'] as String,
-      jerseyNumber: map['jersey_number'] as double,
-      position: List<String>.from(map['position'] as List),
-      heightIn: map['height_in'] as double,
-      weightKg: map['weight_kg'] as double,
-      totalGamesPlayed: map['total_games_played'] as int,
-      totalPointsScored: map['total_points_scored'] as int,
-      totalAssists: map['total_assists'] as int,
-      totalRebounds: map['total_rebounds'] as int,
-      totalJoinLeague: map['total_join_league'] as int,
-      isBan: map['is_ban'] as bool,
-      isAllowed: map['is_allowed'] as bool,
+      fullName:
+          map['full_name'] as String? ?? 'Unknown Player', // Add null safety
+      profileImageUrl:
+          map['profile_image_url'] as String? ?? '', // Add null safety
+      gender: map['gender'] as String? ?? 'Unknown', // Add null safety
+      birthDate: map['birth_date'] as String? ?? '', // Add null safety
+      playerAddress: map['player_address'] as String? ?? '', // Add null safety
+      jerseyName: map['jersey_name'] as String? ?? 'Unknown', // Add null safety
+      position: map['position'] != null
+          ? List<String>.from(map['position'] as List)
+          : ['Unknown'], // Add null safety
+      isBan: map['is_ban'] as bool? ?? false, // Add null safety
+      isAllowed: map['is_allowed'] as bool? ?? true, // Add null safety
       validDocuments: map['valid_documents'] != null
           ? List<String>.from(map['valid_documents'] as List)
           : null,
@@ -322,7 +335,6 @@ class LeaguePlayer extends PlayerTeam {
       'total_points': totalPoints,
       'is_ban_in_league': isBanInLeague,
       'is_allowed_in_league': isAllowedInLeague,
-      'league_team': leagueTeam.toMap(),
       'league_player_created_at': leaguePlayerCreatedAt,
       'league_player_updated_at': leaguePlayerUpdatedAt,
     };

@@ -199,12 +199,13 @@ class LeagueTeam extends Team {
       leagueCategoryId: map['league_category_id'] as String,
       status: map['status'] as String,
       isEliminated: map['is_eliminated'] as bool,
-      amountPaid: map['amount_paid'] as double,
       paymentStatus: map['payment_status'] as String,
-      wins: map['wins'] as int,
-      losses: map['losses'] as int,
-      draws: map['draws'] as int,
-      points: map['points'] as int,
+      amountPaid: (map['amount_paid'] as num).toDouble(),
+      wins: (map['wins'] as num).toInt(),
+      losses: (map['losses'] as num).toInt(),
+      draws: (map['draws'] as num).toInt(),
+      points: (map['points'] as num).toInt(),
+
       leagueTeamCreatedAt: map['league_team_created_at'] as String,
       leagueTeamUpdatedAt: map['league_team_updated_at'] as String,
       leaguePlayers: (map['league_players'] as List)
