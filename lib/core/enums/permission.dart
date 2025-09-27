@@ -5,6 +5,7 @@ enum Permission {
   joinLeagueAsTeam,
   editPlayerProfile,
   viewNotRoster,
+  chat,
 }
 
 List<Permission> userPermission(String? accountType) {
@@ -14,6 +15,7 @@ List<Permission> userPermission(String? accountType) {
         Permission.joinTeam,
         Permission.joinLeague,
         Permission.editPlayerProfile,
+        Permission.chat,
       ];
     case 'Team_Manager':
       return [
@@ -21,6 +23,7 @@ List<Permission> userPermission(String? accountType) {
         Permission.joinLeague,
         Permission.joinLeagueAsTeam,
         Permission.viewNotRoster,
+        Permission.chat,
       ];
     default:
       return [];

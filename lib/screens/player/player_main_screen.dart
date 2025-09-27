@@ -12,7 +12,10 @@ class PlayerMainScreen extends StatelessWidget {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Scaffold(
       body: Obx(() => controller.screens[controller.selectedIndex.value]),
-      bottomNavigationBar: playerBottomNavigation(controller: controller,colors: colors),
+      bottomNavigationBar: playerBottomNavigation(
+        controller: controller,
+        colors: colors,
+      ),
     );
   }
 }

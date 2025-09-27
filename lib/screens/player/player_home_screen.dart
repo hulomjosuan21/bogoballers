@@ -25,6 +25,7 @@ class PlayerHomeScreen extends StatelessWidget {
             },
           ),
         ],
+        flexibleSpace: Container(color: colors.color1),
       ),
       drawer: Drawer(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),

@@ -252,14 +252,20 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 itemCount: widget.team.pendingPlayers.length,
                 itemBuilder: (context, index) {
                   final player = widget.team.pendingPlayers[index];
-                  return _PlayerListItem(player: player);
+                  return _PlayerListItem(
+                    player: player,
+                    permissions: widget.permissions,
+                  );
                 },
               ),
               ListView.builder(
                 itemCount: widget.team.invitedPlayers.length,
                 itemBuilder: (context, index) {
                   final player = widget.team.invitedPlayers[index];
-                  return _PlayerListItem(player: player);
+                  return _PlayerListItem(
+                    player: player,
+                    permissions: widget.permissions,
+                  );
                 },
               ),
             ],
@@ -288,7 +294,10 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
             final player = widget.team.acceptedPlayers[index];
-            return _PlayerListItem(player: player);
+            return _PlayerListItem(
+              player: player,
+              permissions: widget.permissions,
+            );
           },
         ),
       ],
@@ -297,7 +306,8 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
 }
 
 class _PlayerListItem extends StatelessWidget {
-  const _PlayerListItem({required this.player});
+  final List<Permission> permissions;
+  const _PlayerListItem({required this.player, required this.permissions});
   final PlayerTeam player;
 
   @override
@@ -335,7 +345,7 @@ class _PlayerListItem extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  PlayerScreen(permissions: const [], result: player),
+                  PlayerScreen(permissions: permissions, result: player),
             ),
           );
         },

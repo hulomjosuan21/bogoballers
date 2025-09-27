@@ -1,11 +1,14 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
+import 'package:bogoballers/core/models/message.dart';
 import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/providers/team_provider.dart';
 import 'package:bogoballers/core/services/player/player_team_service.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
+import 'package:bogoballers/core/widget/info_card.dart';
 import 'package:bogoballers/core/widget/info_tile.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
+import 'package:bogoballers/screens/chat_loader.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +45,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   bool _isEditing = false;
   bool isProcessing = false;
 
-  // Controllers for editable fields
   late final TextEditingController _fullNameController;
   late final TextEditingController _jerseyNameController;
   late final TextEditingController _jerseyNumberController;
@@ -122,7 +124,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       debugPrint("No changes were made.");
     }
 
-    // Exit edit mode
     setState(() => _isEditing = false);
   }
 
@@ -212,28 +213,46 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           children: [
             _buildProfileHeader(colors),
             const SizedBox(height: Sizes.spaceLg),
-            if (hasPermissions(
-              widget.permissions,
-              required: [Permission.invitePlayer],
-            ))
-              Padding(
-                padding: const EdgeInsets.only(bottom: Sizes.spaceLg),
-                child: GFButton(
-                  onPressed: isProcessing ? null : _handleInvite,
-                  text: "Invite Player to Team",
-                  textStyle: TextStyle(
-                    color: colors.contrast,
-                    fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                if (hasPermissions(
+                  widget.permissions,
+                  required: [Permission.invitePlayer],
+                ))
+                  GFButton(
+                    onPressed: isProcessing ? null : _handleInvite,
+                    text: "Invite this Player",
+                    color: colors.color9,
+                    size: GFSize.SMALL,
                   ),
-                  icon: isProcessing
-                      ? const GFLoader(type: GFLoaderType.circle)
-                      : Icon(Icons.person_add_alt_1, color: colors.contrast),
-                  color: colors.color9,
-                  blockButton: true,
-                  size: GFSize.LARGE,
-                ),
-              ),
-            _buildInfoCard(
+                SizedBox(width: Sizes.spaceMd),
+                if (hasPermissions(
+                  widget.permissions,
+                  required: [Permission.chat],
+                ))
+                  GFButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatLoaderScreen(
+                            partner: ConversationWith(
+                              name: widget.result.fullName,
+                              entityId: widget.result.playerId,
+                              imageUrl: widget.result.profileImageUrl,
+                              userId: widget.result.userId,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    text: "Chat",
+                    color: colors.color9,
+                    size: GFSize.SMALL,
+                  ),
+              ],
+            ),
+            buildInfoCard(
               colors: colors,
               title: 'Player Information',
               icon: Icons.person_outline,
@@ -278,7 +297,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
               ],
             ),
             const SizedBox(height: Sizes.spaceMd),
-            _buildInfoCard(
+            buildInfoCard(
               colors: colors,
               title: 'Career Stats',
               icon: Icons.query_stats,
@@ -421,54 +440,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 ),
               ),
       ],
-    );
-  }
-
-  Widget _buildInfoCard({
-    required AppThemeColors colors,
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(Sizes.radiusMd),
-        border: Border.all(color: colors.gray5, width: Sizes.borderWidthSm),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Sizes.spaceMd,
-              Sizes.spaceMd,
-              Sizes.spaceMd,
-              Sizes.spaceSm,
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: Sizes.fontSizeLg, color: colors.textPrimary),
-                const SizedBox(width: Sizes.spaceSm),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: Sizes.fontSizeLg,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Divider(
-            height: Sizes.borderWidthSm,
-            thickness: Sizes.borderWidthSm,
-            color: colors.gray5,
-          ),
-          ...children,
-        ],
-      ),
     );
   }
 }

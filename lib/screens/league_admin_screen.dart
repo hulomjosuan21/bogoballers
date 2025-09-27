@@ -3,6 +3,7 @@ import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/league_admin_model.dart';
 import 'package:bogoballers/core/models/message.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/widget/info_card.dart';
 import 'package:bogoballers/core/widget/info_tile.dart';
 import 'package:bogoballers/screens/chat_loader.dart';
 import 'package:flutter/material.dart';
@@ -38,33 +39,34 @@ class LeagueAdministratorScreen extends StatelessWidget {
             _buildAdminHeader(context, result),
             const SizedBox(height: Sizes.spaceLg),
 
-            Row(
-              children: [
-                GFButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatLoaderScreen(
-                          partner: ConversationWith(
-                            name: result.organizationName,
-                            entityId: result.leagueAdministratorId,
-                            imageUrl: result.organizationLogoUrl,
-                            userId: result.account.userId,
+            if (hasPermissions(permissions, required: [Permission.chat]))
+              Row(
+                children: [
+                  GFButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatLoaderScreen(
+                            partner: ConversationWith(
+                              name: result.organizationName,
+                              entityId: result.leagueAdministratorId,
+                              imageUrl: result.organizationLogoUrl,
+                              userId: result.account.userId,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                  text: "Chat",
-                  color: colors.color9,
-                  size: GFSize.SMALL,
-                ),
-              ],
-            ),
+                      );
+                    },
+                    text: "Chat",
+                    color: colors.color9,
+                    size: GFSize.SMALL,
+                  ),
+                ],
+              ),
 
-            _buildInfoCard(
-              context,
+            buildInfoCard(
+              colors: colors,
               title: 'Organization Details',
               icon: Icons.business_outlined,
               children: [
@@ -92,8 +94,8 @@ class LeagueAdministratorScreen extends StatelessWidget {
             ),
             const SizedBox(height: Sizes.spaceMd),
 
-            _buildInfoCard(
-              context,
+            buildInfoCard(
+              colors: colors,
               title: 'Administrator Contact',
               icon: Icons.person_pin_outlined,
               children: [
@@ -117,8 +119,6 @@ class LeagueAdministratorScreen extends StatelessWidget {
     );
   }
 }
-
-// --- Reusable Helper Widgets ---
 
 Widget _buildAdminHeader(BuildContext context, LeagueAdministrator admin) {
   final colors = Theme.of(context).extension<AppThemeColors>()!;
@@ -147,54 +147,5 @@ Widget _buildAdminHeader(BuildContext context, LeagueAdministrator admin) {
         textAlign: TextAlign.center,
       ),
     ],
-  );
-}
-
-Widget _buildInfoCard(
-  BuildContext context, {
-  required String title,
-  required IconData icon,
-  required List<Widget> children,
-}) {
-  final colors = Theme.of(context).extension<AppThemeColors>()!;
-  return Container(
-    decoration: BoxDecoration(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(Sizes.radiusMd),
-      border: Border.all(color: colors.gray5, width: Sizes.borderWidthSm),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Sizes.spaceMd,
-            Sizes.spaceMd,
-            Sizes.spaceMd,
-            Sizes.spaceSm,
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: Sizes.fontSizeLg, color: colors.textPrimary),
-              const SizedBox(width: Sizes.spaceSm),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: Sizes.fontSizeLg,
-                  fontWeight: FontWeight.bold,
-                  color: colors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Divider(
-          height: Sizes.borderWidthSm,
-          thickness: Sizes.borderWidthSm,
-          color: colors.gray5,
-        ),
-        ...children,
-      ],
-    ),
   );
 }

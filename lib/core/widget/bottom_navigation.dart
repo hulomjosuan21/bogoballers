@@ -1,6 +1,8 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/screens/conversation_list_screen.dart';
+import 'package:bogoballers/screens/entity_league_screen.dart';
 import 'package:bogoballers/screens/player/player_home_screen.dart';
+import 'package:bogoballers/screens/player/player_profile_wrapper_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_home_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart';
 import 'package:flutter/material.dart';
@@ -42,8 +44,9 @@ class PlayerBottomNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const PlayerHomeScreen(),
+    const EntityLeagueScreen(),
     const ConversationListScreen(),
-    Center(child: Text("Profile")),
+    const PlayerProfileWrapperScreen(),
   ];
 }
 
@@ -52,6 +55,7 @@ class TeamManagerNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const TeamManagerHomeScreen(),
+    const EntityLeagueScreen(),
     const TeamManagerTeamsScreen(),
     const ConversationListScreen(),
   ];
@@ -92,15 +96,21 @@ Obx playerBottomNavigation({
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
+          icon: Iconsax.cup,
+          label: "League",
+          index: 1,
+          selectedIndex: controller.selectedIndex,
+        ),
+        NavigationDestinationItem(
           icon: Iconsax.message,
           label: "Chats",
-          index: 1,
+          index: 2,
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
           icon: Iconsax.user,
           label: "Me",
-          index: 2,
+          index: 3,
           selectedIndex: controller.selectedIndex,
         ),
       ],
@@ -143,15 +153,21 @@ Obx teamManagerBottomNavigation({
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
+          icon: Iconsax.cup,
+          label: "League",
+          index: 1,
+          selectedIndex: controller.selectedIndex,
+        ),
+        NavigationDestinationItem(
           icon: Iconsax.people,
           label: "Team",
-          index: 1,
+          index: 2,
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
           icon: Iconsax.message,
           label: "Chats",
-          index: 2,
+          index: 3,
           selectedIndex: controller.selectedIndex,
         ),
       ],

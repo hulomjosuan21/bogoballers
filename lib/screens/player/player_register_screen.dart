@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/data/static_data.dart';
 import 'package:bogoballers/core/services/player/player_service.dart';
@@ -25,6 +27,7 @@ class PlayerRegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(centerTitle: true, title: Text("Register as Player")),
       body: PlayerRegisterPageView(),
     );
@@ -462,7 +465,7 @@ class _PlayerRegisterPageViewState extends State<PlayerRegisterPageView> {
         "player_address": selectedBarangay!,
         "jersey_name": jerseyNameController.text,
         "jersey_number": double.parse(jerseyNumberController.text),
-        "position": positions,
+        "position": jsonEncode(positions),
         "profile_image": multipartFile,
         "fcm_token": fcmToken,
       });
