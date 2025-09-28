@@ -76,6 +76,8 @@ dependencies:
   dartz: ^0.10.1
   webview_flutter: ^4.13.0
   webview_flutter_wkwebview: ^3.23.0
+  flutter_image_compress: ^2.4.0
+  image: ^4.5.4
 
 dev_dependencies:
   flutter_test:

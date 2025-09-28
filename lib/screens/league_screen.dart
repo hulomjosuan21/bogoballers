@@ -4,6 +4,7 @@ import 'package:bogoballers/core/models/league_model.dart';
 import 'package:bogoballers/core/services/league/league_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
+import 'package:bogoballers/core/widget/info_list_tile.dart';
 import 'package:bogoballers/core/widget/info_tile.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart';
@@ -206,7 +207,16 @@ class LeagueScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final official = officials[index];
         return ListTile(
-          leading: CircleAvatar(backgroundImage: NetworkImage(official.photo)),
+          leading: SizedBox(
+            width: 40,
+            height: 40,
+            child: Image.network(
+              official.photo,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.person),
+            ),
+          ),
           title: Text(official.fullName),
           subtitle: Text(official.role),
         );
@@ -214,16 +224,76 @@ class LeagueScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRefereeList(
-    BuildContext context,
-    List<LeagueReferee> referees,
-  ) => Container();
-  Widget _buildCourtList(BuildContext context, List<LeagueCourt> courts) =>
-      Container();
+  Widget _buildRefereeList(BuildContext context, List<LeagueReferee> referees) {
+    if (referees.isEmpty) {
+      return const Center(child: Text('No referees listed.'));
+    }
+    return ListView.builder(
+      itemCount: referees.length,
+      itemBuilder: (context, index) {
+        final referee = referees[index];
+        return ListTile(
+          leading: SizedBox(
+            width: 40,
+            height: 40,
+            child: Image.network(
+              referee.photo,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.person),
+            ),
+          ),
+          title: Text(referee.fullName),
+          subtitle: Text(referee.contactInfo),
+        );
+      },
+    );
+  }
+
+  Widget _buildCourtList(BuildContext context, List<LeagueCourt> courts) {
+    if (courts.isEmpty) {
+      return const Center(child: Text('No courts listed.'));
+    }
+    return ListView.builder(
+      itemCount: courts.length,
+      itemBuilder: (context, index) {
+        final court = courts[index];
+        return ListTile(
+          title: Text(court.name),
+          subtitle: Text(court.location),
+        );
+      },
+    );
+  }
+
   Widget _buildAffiliateList(
     BuildContext context,
     List<LeagueAffiliate> affiliates,
-  ) => Container();
+  ) {
+    if (affiliates.isEmpty) {
+      return const Center(child: Text('No courts listed.'));
+    }
+    return ListView.builder(
+      itemCount: affiliates.length,
+      itemBuilder: (context, index) {
+        final affiliate = affiliates[index];
+        return ListTile(
+          leading: SizedBox(
+            width: 40,
+            height: 40,
+            child: Image.network(
+              affiliate.image,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.person),
+            ),
+          ),
+          title: Text(affiliate.name),
+          subtitle: Text(affiliate.contactInfo),
+        );
+      },
+    );
+  }
 }
 
 class LeagueCategoryScreen extends StatefulWidget {
@@ -379,6 +449,12 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
                 ),
                 InfoTile(
                   colors: colors,
+                  icon: Icons.flag_outlined,
+                  label: 'Status',
+                  value: widget.leagueCategory.leagueCategoryStatus,
+                ),
+                InfoTile(
+                  colors: colors,
                   icon: Icons.attach_money_outlined,
                   label: 'Entrance Fee',
                   value:
@@ -394,11 +470,11 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
                 ),
                 if (widget.leagueCategory.requiresValidDocument &&
                     widget.leagueCategory.allowedDocuments != null)
-                  InfoTile(
+                  InfoListTile(
                     colors: colors,
                     icon: Icons.description_outlined,
                     label: 'Allowed Documents',
-                    value: widget.leagueCategory.allowedDocuments!.join(', '),
+                    values: widget.leagueCategory.allowedDocuments,
                   ),
               ],
             ),

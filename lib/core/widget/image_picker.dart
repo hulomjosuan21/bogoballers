@@ -1,7 +1,6 @@
-import 'dart:typed_data';
 import 'dart:io';
-import 'dart:ui' as ui;
-
+import 'dart:ui'
+    as ui; // dart:ui is still needed for Rect, but not for isolate work
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
@@ -13,9 +12,13 @@ import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/shape/gf_button_shape.dart';
 import 'package:getwidget/size/gf_size.dart';
 import 'package:getwidget/types/gf_button_type.dart';
-import 'package:image/image.dart' as img; // Add image package for resizing
 
-/// Helper class for image cropping parameters
+// Import the image compression library
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+// Import the image manipulation library (critical for isolate-safe cropping)
+import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as p;
+
 class CropParams {
   final Uint8List imageData;
   final Rect cropRect;
@@ -23,37 +26,28 @@ class CropParams {
   CropParams(this.imageData, this.cropRect);
 }
 
-/// Crops image data using Dart's UI library in an isolate
+// THIS IS THE FULLY CORRECTED, ISOLATE-SAFE VERSION
 Future<Uint8List?> cropImageDataWithDartLibrary(CropParams params) async {
   try {
-    final ui.Codec codec = await ui.instantiateImageCodec(params.imageData);
-    final ui.FrameInfo frameInfo = await codec.getNextFrame();
-    final ui.Image image = frameInfo.image;
+    // 1. Decode the image using the 'image' package, which is isolate-safe.
+    final img.Image? originalImage = img.decodeImage(params.imageData);
+    if (originalImage == null) {
+      debugPrint("Crop error: Failed to decode image.");
+      return null;
+    }
 
-    final ui.PictureRecorder recorder = ui.PictureRecorder();
-    final Canvas canvas = Canvas(recorder);
-
-    final paint = Paint();
-    final src = params.cropRect;
-    final dst = Rect.fromLTWH(0, 0, src.width, src.height);
-
-    canvas.drawImageRect(image, src, dst, paint);
-
-    final ui.Image croppedImage = await recorder.endRecording().toImage(
-      src.width.toInt(),
-      src.height.toInt(),
+    // 2. Perform the crop using the 'image' package's copyCrop function.
+    // The Rect values need to be converted to integer coordinates.
+    final img.Image croppedImage = img.copyCrop(
+      originalImage,
+      x: params.cropRect.left.toInt(),
+      y: params.cropRect.top.toInt(),
+      width: params.cropRect.width.toInt(),
+      height: params.cropRect.height.toInt(),
     );
 
-    final ByteData? byteData = await croppedImage.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
-
-    // Clean up resources
-    image.dispose();
-    croppedImage.dispose();
-    codec.dispose();
-
-    return byteData?.buffer.asUint8List();
+    // 3. Encode the newly cropped image back into a Uint8List (as a JPEG).
+    return Uint8List.fromList(img.encodeJpg(croppedImage, quality: 95));
   } catch (e) {
     debugPrint("Crop error: $e");
     return null;
@@ -62,10 +56,14 @@ Future<Uint8List?> cropImageDataWithDartLibrary(CropParams params) async {
 
 /// A popup dialog for cropping images
 class CropPopup extends StatefulWidget {
-  final File file;
+  final Uint8List imageBytes;
   final double? aspectRatio;
 
-  const CropPopup({super.key, required this.file, required this.aspectRatio});
+  const CropPopup({
+    super.key,
+    required this.imageBytes,
+    required this.aspectRatio,
+  });
 
   @override
   State<CropPopup> createState() => _CropPopupState();
@@ -78,7 +76,7 @@ class _CropPopupState extends State<CropPopup> {
     final state = _editorKey.currentState;
     if (state == null) return;
 
-    final Uint8List? rawData = await state.rawImageData;
+    final Uint8List? rawData = state.rawImageData;
     final Rect? cropRect = state.getCropRect();
     if (rawData == null || cropRect == null) return;
 
@@ -91,15 +89,14 @@ class _CropPopupState extends State<CropPopup> {
     if (croppedBytes != null && mounted) {
       Navigator.pop(context, croppedBytes);
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to crop image.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to crop image.')));
     }
   }
 
   void _resetCrop() {
-    final state = _editorKey.currentState;
-    state?.reset();
+    _editorKey.currentState?.reset();
   }
 
   @override
@@ -129,8 +126,8 @@ class _CropPopupState extends State<CropPopup> {
       content: SizedBox(
         width: dialogWidth,
         height: dialogHeight,
-        child: ExtendedImage.file(
-          widget.file,
+        child: ExtendedImage.memory(
+          widget.imageBytes,
           fit: BoxFit.contain,
           mode: ExtendedImageMode.editor,
           extendedImageEditorKey: _editorKey,
@@ -141,7 +138,6 @@ class _CropPopupState extends State<CropPopup> {
             hitTestSize: 20,
             cropRectPadding: const EdgeInsets.all(20),
             maxScale: 8,
-            // Optimize memory usage
             initCropRectType: InitCropRectType.imageRect,
           ),
         ),
@@ -216,94 +212,105 @@ class _AppImagePickerState extends State<AppImagePicker> {
   Future<void> _loadAssetImage() async {
     if (widget.assetPath != null) {
       final ByteData data = await rootBundle.load(widget.assetPath!);
-      final bytes = data.buffer.asUint8List();
-      // Resize asset image to reduce memory usage
-      final resized = await _resizeImage(bytes, 512);
-      if (mounted) {
+      final bytes = await _processAndNormalizeImage(
+        data.buffer.asUint8List(),
+        maxDimension: 512,
+      );
+      if (mounted && bytes != null) {
         setState(() {
-          _avatarBytes = resized;
+          _avatarBytes = bytes;
         });
       }
     }
   }
 
-  /// Resizes image to a maximum dimension while preserving aspect ratio
-  Future<Uint8List> _resizeImage(Uint8List bytes, int maxDimension) async {
-    final image = img.decodeImage(bytes);
-    if (image == null) return bytes;
-
-    final width = image.width;
-    final height = image.height;
-    if (width <= maxDimension && height <= maxDimension) return bytes;
-
-    final scale = maxDimension / (width > height ? width : height);
-    final resized = img.copyResize(
-      image,
-      width: (width * scale).toInt(),
-      height: (height * scale).toInt(),
-    );
-
-    return Uint8List.fromList(img.encodePng(resized));
+  Future<Uint8List?> _processAndNormalizeImage(
+    dynamic imageSource, {
+    int maxDimension = 1024,
+    int quality = 85,
+  }) async {
+    try {
+      if (imageSource is String) {
+        return await FlutterImageCompress.compressWithFile(
+          imageSource,
+          minWidth: maxDimension,
+          minHeight: maxDimension,
+          quality: quality,
+          format: CompressFormat.jpeg,
+        );
+      } else if (imageSource is Uint8List) {
+        return await FlutterImageCompress.compressWithList(
+          imageSource,
+          minWidth: maxDimension,
+          minHeight: maxDimension,
+          quality: quality,
+          format: CompressFormat.jpeg,
+        );
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Image processing error: $e");
+      return null;
+    }
   }
 
   Future<void> _selectAndCropImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png'],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'],
     );
 
     if (result?.files.single.path == null) return;
 
-    final filePath = result!.files.single.path!;
-    final fileName = result.files.single.name;
-    final fileExtension = fileName.split('.').last.toLowerCase();
+    final file = result!.files.single;
+    final filePath = file.path!;
+    final originalFileName = file.name;
 
-    // Validate file extension case-insensitively
-    if (!['jpg', 'jpeg', 'png'].contains(fileExtension)) {
+    final processedBytes = await _processAndNormalizeImage(
+      filePath,
+      maxDimension: 1024,
+    );
+
+    if (processedBytes == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Unsupported file type! Please select a JPG, JPEG, or PNG image.',
-            ),
-          ),
+          const SnackBar(content: Text('Failed to process image.')),
         );
       }
       return;
     }
 
-    final file = File(filePath);
-    final bytes = await file.readAsBytes();
-    // Resize image before processing
-    final resizedBytes = await _resizeImage(bytes, 1024);
-    final decoded = await decodeImageFromList(resizedBytes);
-
+    final decoded = await decodeImageFromList(processedBytes);
     Uint8List? finalBytes;
 
-    if (decoded.width != decoded.height) {
+    final imageAspectRatio = decoded.width / decoded.height;
+    final needsCrop = (imageAspectRatio - widget.aspectRatio).abs() > 0.01;
+
+    if (needsCrop) {
       if (!mounted) return;
       final cropped = await showDialog<Uint8List>(
         context: context,
         builder: (_) => CropPopup(
-          file: File.fromUri(Uri.file(filePath)),
+          imageBytes: processedBytes,
           aspectRatio: widget.aspectRatio,
         ),
       );
       finalBytes = cropped;
     } else {
-      finalBytes = resizedBytes;
+      finalBytes = processedBytes;
     }
 
     if (finalBytes != null && mounted) {
+      final newFileName =
+          '${p.basenameWithoutExtension(originalFileName)}.jpeg';
+
       setState(() {
         _avatarBytes = finalBytes;
-        _fileName = fileName;
+        _fileName = newFileName;
         _multipartFile = dio.MultipartFile.fromBytes(
-          finalBytes as List<int>,
-          filename: fileName,
-          contentType: dio.DioMediaType.parse(
-            fileExtension == 'png' ? 'image/png' : 'image/jpeg',
-          ),
+          finalBytes!,
+          filename: newFileName,
+          contentType: dio.DioMediaType.parse('image/jpeg'),
         );
       });
     }
@@ -313,7 +320,7 @@ class _AppImagePickerState extends State<AppImagePicker> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     return Column(
-      key: ValueKey(_fileName), // Prevent unnecessary rebuilds
+      key: ValueKey(_fileName),
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -323,7 +330,7 @@ class _AppImagePickerState extends State<AppImagePicker> {
                   width: widget.width,
                   height: widget.width / widget.aspectRatio,
                   fit: BoxFit.cover,
-                  gaplessPlayback: true, // Smooth image transitions
+                  gaplessPlayback: true,
                 )
               : Container(
                   width: widget.width,

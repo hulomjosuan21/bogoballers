@@ -60,21 +60,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
     });
 
     socketService.onNotifications((list) {
-      setState(() {
-        _notifications
-          ..clear()
-          ..addAll(list.map((n) => NotificationModel.fromJson(n)));
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _notifications
+            ..clear()
+            ..addAll(list.map((n) => NotificationModel.fromJson(n)));
+          _isLoading = false;
+        });
+      }
     });
 
     socketService.onNewNotification((notif) {
-      setState(() {
-        _notifications.insert(0, NotificationModel.fromJson(notif));
-      });
+      if (mounted) {
+        setState(() {
+          _notifications.insert(0, NotificationModel.fromJson(notif));
+        });
+      }
     });
 
-    // fetch initial notifications
     await _refreshNotifications();
   }
 
@@ -82,8 +85,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (_currentUserId != null) {
       setState(() => _isLoading = true);
       SocketService.instance.getNotifications(_currentUserId!);
+      // Artificial delay to allow socket event to be received
       await Future.delayed(const Duration(milliseconds: 300));
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _removeNotificationById(String? notificationId) {
+    if (notificationId == null) return;
+    if (mounted) {
+      setState(() {
+        _notifications.removeWhere((n) => n.notificationId == notificationId);
+      });
     }
   }
 
@@ -104,7 +119,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 itemCount: _notifications.length,
                 itemBuilder: (context, index) {
                   final notif = _notifications[index];
-                  return NotificationItem(notification: notif, colors: colors);
+                  return NotificationItem(
+                    notification: notif,
+                    colors: colors,
+                    onActionCompleted: () =>
+                        _removeNotificationById(notif.notificationId),
+                  );
                 },
               ),
             ),
@@ -115,11 +135,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
 class NotificationItem extends StatefulWidget {
   final NotificationModel notification;
   final AppThemeColors colors;
+  final VoidCallback onActionCompleted;
 
   const NotificationItem({
     super.key,
     required this.notification,
     required this.colors,
+    required this.onActionCompleted,
   });
 
   @override
@@ -127,6 +149,8 @@ class NotificationItem extends StatefulWidget {
 }
 
 class _NotificationItemState extends State<NotificationItem> {
+  bool _isProcessing = false;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -143,6 +167,7 @@ class _NotificationItemState extends State<NotificationItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
@@ -162,18 +187,33 @@ class _NotificationItemState extends State<NotificationItem> {
                   ],
                 ),
               ),
-              Text(
-                formatConversationTimestamp(widget.notification.createdAt),
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Text(
+                  formatConversationTimestamp(widget.notification.createdAt),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           if (_hasActions())
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: _getActionButtons(),
-            ),
+            _isProcessing
+                ? const Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: _getActionButtons(),
+                  ),
         ],
       ),
     );
@@ -203,18 +243,25 @@ class _NotificationItemState extends State<NotificationItem> {
   }
 
   Future<void> _handleAcceptInvite() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
     try {
+      final notificationId = widget.notification.notificationId;
       await NotificationAction.acceptTeamInvitation(
         widget.notification.actionPayload?['player_team_id'] as String,
       );
+
+      await NotificationAction.deleteNotification(notificationId);
 
       if (mounted) {
         showAppSnackbar(
           context,
           message: "Accepted successfully.",
-          title: "Succcess",
+          title: "Success",
           variant: SnackbarVariant.success,
         );
+        widget.onActionCompleted();
       }
     } catch (e) {
       if (mounted) {
@@ -224,23 +271,35 @@ class _NotificationItemState extends State<NotificationItem> {
           title: "Error",
           variant: SnackbarVariant.error,
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
       }
     }
   }
 
   Future<void> _handleRejectInvite() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
     try {
+      final notificationId = widget.notification.notificationId;
+
       await NotificationAction.rejectTeamInvitation(
         widget.notification.actionPayload?['player_team_id'] as String,
       );
 
+      await NotificationAction.deleteNotification(notificationId);
+
       if (mounted) {
         showAppSnackbar(
           context,
-          message: "Reject successfully.",
-          title: "Succcess",
+          message: "Invitation rejected.",
+          title: "Success",
           variant: SnackbarVariant.info,
         );
+        widget.onActionCompleted();
       }
     } catch (e) {
       if (mounted) {
@@ -250,6 +309,10 @@ class _NotificationItemState extends State<NotificationItem> {
           title: "Error",
           variant: SnackbarVariant.error,
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
       }
     }
   }

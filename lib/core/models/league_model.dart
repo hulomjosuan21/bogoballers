@@ -168,6 +168,7 @@ class LeagueCategory extends Category {
   final bool acceptTeams;
   final String leagueCategoryCreatedAt;
   final String leagueCategoryUpdatedAt;
+  final String leagueCategoryStatus;
   final List<LeagueCategoryRound> rounds;
 
   LeagueCategory({
@@ -176,6 +177,7 @@ class LeagueCategory extends Category {
     required this.maxTeam,
     required this.acceptTeams,
     required this.leagueCategoryCreatedAt,
+    required this.leagueCategoryStatus,
     required this.leagueCategoryUpdatedAt,
     required this.rounds,
     required super.categoryId,
@@ -210,6 +212,7 @@ class LeagueCategory extends Category {
           .map((e) => LeagueCategoryRound.fromMap(e as Map<String, dynamic>))
           .toList(),
       categoryId: map['category_id'] as String,
+      leagueCategoryStatus: map['league_category_status'] as String,
       categoryName: map['category_name'] as String,
       leagueAdministratorId: map['league_administrator_id'] as String,
       checkPlayerAge: map['check_player_age'] as bool,
