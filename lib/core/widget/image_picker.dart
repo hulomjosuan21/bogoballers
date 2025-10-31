@@ -319,39 +319,56 @@ class _AppImagePickerState extends State<AppImagePicker> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    return Column(
-      key: ValueKey(_fileName),
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: _avatarBytes != null
-              ? Image.memory(
-                  _avatarBytes!,
-                  width: widget.width,
-                  height: widget.width / widget.aspectRatio,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                )
-              : Container(
-                  width: widget.width,
-                  height: widget.width / widget.aspectRatio,
-                  color: colors.gray4,
-                  child: Icon(Icons.image, size: 48, color: colors.gray1),
-                ),
-        ),
-        if (_fileName != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            _fileName!,
-            style: TextStyle(
-              color: colors.gray11,
-              fontSize: 12,
-              overflow: TextOverflow.ellipsis,
-            ),
-            maxLines: 1,
+    final aspectRatio = widget.aspectRatio;
+    final width = widget.width;
+
+    Widget imageWidget;
+
+    if (_avatarBytes != null) {
+      // Show newly picked image
+      imageWidget = Image.memory(
+        _avatarBytes!,
+        width: width,
+        height: width / aspectRatio,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      );
+    } else if (widget.assetPath != null) {
+      // Show remote or asset image
+      if (widget.assetPath!.startsWith('http')) {
+        imageWidget = Image.network(
+          widget.assetPath!,
+          width: width,
+          height: width / aspectRatio,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            width: width,
+            height: width / aspectRatio,
+            color: colors.gray4,
+            child: Icon(Icons.broken_image, size: 48, color: colors.gray1),
           ),
-        ],
-      ],
+        );
+      } else {
+        imageWidget = Image.asset(
+          widget.assetPath!,
+          width: width,
+          height: width / aspectRatio,
+          fit: BoxFit.cover,
+        );
+      }
+    } else {
+      // Placeholder (no image)
+      imageWidget = Container(
+        width: width,
+        height: width / aspectRatio,
+        color: colors.gray4,
+        child: Icon(Icons.image, size: 48, color: colors.gray1),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: imageWidget,
     );
   }
 }
