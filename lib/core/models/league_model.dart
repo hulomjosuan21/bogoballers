@@ -371,8 +371,6 @@ class LeagueCategoryRound {
   final String? formatType;
   final String? roundFormat;
   final String? nextRoundId;
-  final String leagueCategoryRoundCreatedAt;
-  final String leagueCategoryRoundUpdatedAt;
 
   LeagueCategoryRound({
     required this.roundId,
@@ -385,8 +383,6 @@ class LeagueCategoryRound {
     this.formatType,
     this.roundFormat,
     this.nextRoundId,
-    required this.leagueCategoryRoundCreatedAt,
-    required this.leagueCategoryRoundUpdatedAt,
   });
 
   factory LeagueCategoryRound.fromMap(Map<String, dynamic> map) {
@@ -400,10 +396,6 @@ class LeagueCategoryRound {
       matchesGenerated: map['matches_generated'] as bool,
       formatType: map['format_type'] as String?,
       nextRoundId: map['next_round_id'] as String?,
-      leagueCategoryRoundCreatedAt:
-          map['league_category_round_created_at'] as String,
-      leagueCategoryRoundUpdatedAt:
-          map['league_category_round_updated_at'] as String,
     );
   }
 
@@ -419,8 +411,6 @@ class LeagueCategoryRound {
       'format_type': formatType,
       'round_format': roundFormat,
       'next_round_id': nextRoundId,
-      'league_category_round_created_at': leagueCategoryRoundCreatedAt,
-      'league_category_round_updated_at': leagueCategoryRoundUpdatedAt,
     };
   }
 }

@@ -9,6 +9,7 @@ import 'package:bogoballers/core/widget/info_card.dart';
 import 'package:bogoballers/core/widget/info_tile.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/screens/chat_loader.dart';
+import 'package:bogoballers/screens/player/player_update_doc_screen.dart';
 import 'package:bogoballers/screens/team_manager/team_manager_teams_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -328,6 +329,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 ),
               ],
             ),
+
+            const SizedBox(height: Sizes.spaceMd),
+            if (hasPermissions(
+              widget.permissions,
+              required: [Permission.uploadDocPlayer],
+            ))
+              PlayerUpdateDocSection(
+                playerId: widget.result.playerId,
+                validDocuments: widget.result.validDocuments,
+              ),
           ],
         ),
       ),

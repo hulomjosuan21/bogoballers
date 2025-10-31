@@ -1,7 +1,9 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/enums/permission.dart';
 import 'package:bogoballers/core/models/league_model.dart';
+import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/services/league/league_service.dart';
+import 'package:bogoballers/core/services/league_guest_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
 import 'package:bogoballers/core/widget/info_list_tile.dart';
@@ -313,7 +315,7 @@ class LeagueCategoryScreen extends StatefulWidget {
 class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
   bool isProcessing = false;
 
-  Future<void> onPressed() async {
+  Future<void> onPressedSubmit() async {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
 
     final result = await Navigator.push(
@@ -386,6 +388,85 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
         showAppSnackbar(
           context,
           message: responseData['message'],
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackbar(
+        context,
+        message: ErrorHandler.getErrorMessage(e),
+        title: "Error",
+        variant: SnackbarVariant.error,
+      );
+    } finally {
+      if (mounted) setState(() => isProcessing = false);
+    }
+  }
+
+  Future<void> onPressedSubmitAsGuestPlayer() async {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+
+    final entity = await getEntityCredentialsFromStorage();
+
+    if (!mounted) return;
+
+    final paymentMethod = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Select Payment Method"),
+          content: const Text("Do you want to pay online or on-site?"),
+          actions: [
+            GFButton(
+              onPressed: () => Navigator.pop(context, "Pay on site"),
+              text: "On-site",
+              size: GFSize.SMALL,
+              type: GFButtonType.outline,
+              color: colors.color9,
+            ),
+            GFButton(
+              onPressed: () => Navigator.pop(context, "Pay online"),
+              text: "Online",
+              color: colors.color9,
+              size: GFSize.SMALL,
+            ),
+          ],
+        );
+      },
+    );
+    if (paymentMethod == null) return;
+
+    setState(() => isProcessing = true);
+
+    try {
+      final response = await LeagueGuestService.submitGuestRequest(
+        leagueCategoryId: widget.leagueCategory.leagueCategoryId,
+        paymentMethod: paymentMethod,
+        playerId: entity.entityId,
+      );
+
+      if (paymentMethod == "Pay online" && response['checkout_url'] != null) {
+        if (!mounted) return;
+        showAppSnackbar(
+          context,
+          message: response['message'],
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+        await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                PaymentWebViewPage(checkoutUrl: response['checkout_url']),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        showAppSnackbar(
+          context,
+          message: response['message'],
           title: "Success",
           variant: SnackbarVariant.success,
         );
@@ -510,8 +591,24 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
               required: [Permission.joinLeague, Permission.joinLeagueAsTeam],
             ))
               GFButton(
-                onPressed: onPressed,
-                text: "Join Category",
+                onPressed: onPressedSubmit,
+                text: "Submit",
+                textStyle: TextStyle(
+                  color: colors.contrast,
+                  fontWeight: FontWeight.bold,
+                ),
+                color: colors.color9,
+                blockButton: true,
+                size: GFSize.MEDIUM,
+              ),
+
+            if (hasPermissions(
+              widget.permissions,
+              required: [Permission.joinAsGuestPlayer],
+            ))
+              GFButton(
+                onPressed: onPressedSubmitAsGuestPlayer,
+                text: "Submit as Guest",
                 textStyle: TextStyle(
                   color: colors.contrast,
                   fontWeight: FontWeight.bold,

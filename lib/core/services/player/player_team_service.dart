@@ -40,4 +40,24 @@ class PlayerTeamService {
 
     return ApiResponse.fromJsonNoPayload(response.data);
   }
+
+  static Future<ApiResponse> toggleTeamCaptain(String playerTeamId) async {
+    final api = DioClient().client;
+
+    Response response = await api.put(
+      '/player-team/toggle-captain/$playerTeamId',
+    );
+
+    return ApiResponse.fromJsonNoPayload(response.data);
+  }
+
+  static Future<ApiResponse> removePlayerFromTeam(String playerTeamId) async {
+    final api = DioClient().client;
+
+    Response response = await api.put(
+      '/player-team/toggle-captain/$playerTeamId',
+    );
+
+    return ApiResponse.fromJsonNoPayload(response.data);
+  }
 }

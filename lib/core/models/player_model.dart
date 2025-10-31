@@ -1,3 +1,4 @@
+import 'package:bogoballers/core/models/player_valid_doc_model.dart';
 import 'package:bogoballers/core/models/user_model.dart';
 
 class Player {
@@ -19,9 +20,21 @@ class Player {
   final int totalAssists;
   final int totalRebounds;
   final int totalJoinLeague;
+
+  final int totalSteals;
+  final int totalBlocks;
+  final int totalTurnovers;
+
+  final double fg2PercentagePerGame;
+  final double fg3PercentagePerGame;
+  final double fgPercentagePerGame;
+
+  final double platformPoints;
+  final double platformPointsPerGame;
+
   final bool isBan;
   final bool isAllowed;
-  final List<String>? validDocuments;
+  final List<PlayerValidDocModel> validDocuments;
   final User user;
   final String playerCreatedAt;
   final String playerUpdatedAt;
@@ -45,9 +58,17 @@ class Player {
     required this.totalAssists,
     required this.totalRebounds,
     required this.totalJoinLeague,
+    required this.totalSteals,
+    required this.totalBlocks,
+    required this.totalTurnovers,
+    required this.fg2PercentagePerGame,
+    required this.fg3PercentagePerGame,
+    required this.fgPercentagePerGame,
+    required this.platformPoints,
+    required this.platformPointsPerGame,
     required this.isBan,
     required this.isAllowed,
-    this.validDocuments,
+    required this.validDocuments,
     required this.user,
     required this.playerCreatedAt,
     required this.playerUpdatedAt,
@@ -76,11 +97,29 @@ class Player {
       totalRebounds: (map['total_rebounds'] as num).toInt(),
       totalJoinLeague: (map['total_join_league'] as num).toInt(),
 
+      totalSteals: (map['total_steals'] as num?)?.toInt() ?? 0,
+      totalBlocks: (map['total_blocks'] as num?)?.toInt() ?? 0,
+      totalTurnovers: (map['total_turnovers'] as num?)?.toInt() ?? 0,
+
+      fg2PercentagePerGame: (map['fg2_percentage_per_game'] as num).toDouble(),
+      fg3PercentagePerGame: (map['fg3_percentage_per_game'] as num).toDouble(),
+      fgPercentagePerGame: (map['ft_percentage_per_game'] as num).toDouble(),
+
+      platformPoints: (map['platform_points'] as num).toDouble(),
+      platformPointsPerGame: (map['platform_points_per_game'] as num)
+          .toDouble(),
+
       isBan: map['is_ban'] as bool,
       isAllowed: map['is_allowed'] as bool,
-      validDocuments: map['valid_documents'] != null
-          ? List<String>.from(map['valid_documents'] as List)
-          : null,
+      validDocuments:
+          (map['valid_documents'] as List<dynamic>?)
+              ?.map(
+                (docJson) => PlayerValidDocModel.fromMap(
+                  docJson as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          <PlayerValidDocModel>[],
       user: User.fromMap(map['user'] as Map<String, dynamic>),
       playerCreatedAt: map['player_created_at'] as String,
       playerUpdatedAt: map['player_updated_at'] as String,
@@ -120,7 +159,7 @@ class Player {
 class PlayerTeam extends Player {
   final String playerTeamId;
   final String teamId;
-  final bool isTeamCaptain;
+  bool isTeamCaptain;
   final String isAccepted;
   final String playerTeamCreatedAt;
   final String playerTeamUpdatedAt;
@@ -150,9 +189,17 @@ class PlayerTeam extends Player {
     required super.totalAssists,
     required super.totalRebounds,
     required super.totalJoinLeague,
+    required super.totalSteals,
+    required super.totalBlocks,
+    required super.totalTurnovers,
+    required super.fg2PercentagePerGame,
+    required super.fg3PercentagePerGame,
+    required super.fgPercentagePerGame,
+    required super.platformPoints,
+    required super.platformPointsPerGame,
     required super.isBan,
     required super.isAllowed,
-    super.validDocuments,
+    required super.validDocuments,
     required super.user,
     required super.playerCreatedAt,
     required super.playerUpdatedAt,
@@ -184,11 +231,28 @@ class PlayerTeam extends Player {
       totalAssists: map['total_assists'] as int,
       totalRebounds: map['total_rebounds'] as int,
       totalJoinLeague: map['total_join_league'] as int,
+      totalSteals: (map['total_steals'] as num?)?.toInt() ?? 0,
+      totalBlocks: (map['total_blocks'] as num?)?.toInt() ?? 0,
+      totalTurnovers: (map['total_turnovers'] as num?)?.toInt() ?? 0,
+
+      fg2PercentagePerGame: (map['fg2_percentage_per_game'] as num).toDouble(),
+      fg3PercentagePerGame: (map['fg3_percentage_per_game'] as num).toDouble(),
+      fgPercentagePerGame: (map['ft_percentage_per_game'] as num).toDouble(),
+
+      platformPoints: (map['platform_points'] as num).toDouble(),
+      platformPointsPerGame: (map['platform_points_per_game'] as num)
+          .toDouble(),
       isBan: map['is_ban'] as bool,
       isAllowed: map['is_allowed'] as bool,
-      validDocuments: map['valid_documents'] != null
-          ? List<String>.from(map['valid_documents'] as List)
-          : null,
+      validDocuments:
+          (map['valid_documents'] as List<dynamic>?)
+              ?.map(
+                (docJson) => PlayerValidDocModel.fromMap(
+                  docJson as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          <PlayerValidDocModel>[],
       user: User.fromMap(map['user'] as Map<String, dynamic>),
       playerCreatedAt: map['player_created_at'] as String,
       playerUpdatedAt: map['player_updated_at'] as String,
@@ -254,9 +318,17 @@ class LeaguePlayer extends PlayerTeam {
     required super.totalAssists,
     required super.totalRebounds,
     required super.totalJoinLeague,
+    required super.totalSteals,
+    required super.totalBlocks,
+    required super.totalTurnovers,
+    required super.fg2PercentagePerGame,
+    required super.fg3PercentagePerGame,
+    required super.fgPercentagePerGame,
+    required super.platformPoints,
+    required super.platformPointsPerGame,
     required super.isBan,
     required super.isAllowed,
-    super.validDocuments,
+    required super.validDocuments,
     required super.user,
     required super.playerCreatedAt,
     required super.playerUpdatedAt,
@@ -294,6 +366,18 @@ class LeaguePlayer extends PlayerTeam {
       totalJoinLeague:
           (map['total_join_league'] as num?)?.toInt() ?? 0, // Add null safety
 
+      totalSteals: (map['total_steals'] as num?)?.toInt() ?? 0,
+      totalBlocks: (map['total_blocks'] as num?)?.toInt() ?? 0,
+      totalTurnovers: (map['total_turnovers'] as num?)?.toInt() ?? 0,
+
+      fg2PercentagePerGame: (map['fg2_percentage_per_game'] as num).toDouble(),
+      fg3PercentagePerGame: (map['fg3_percentage_per_game'] as num).toDouble(),
+      fgPercentagePerGame: (map['ft_percentage_per_game'] as num).toDouble(),
+
+      platformPoints: (map['platform_points'] as num).toDouble(),
+      platformPointsPerGame: (map['platform_points_per_game'] as num)
+          .toDouble(),
+
       isTeamCaptain:
           map['is_team_captain'] as bool? ?? false, // Add null safety
       isAccepted: map['is_accepted'] as String? ?? 'pending', // Add null safety
@@ -315,9 +399,15 @@ class LeaguePlayer extends PlayerTeam {
           : ['Unknown'], // Add null safety
       isBan: map['is_ban'] as bool? ?? false, // Add null safety
       isAllowed: map['is_allowed'] as bool? ?? true, // Add null safety
-      validDocuments: map['valid_documents'] != null
-          ? List<String>.from(map['valid_documents'] as List)
-          : null,
+      validDocuments:
+          (map['valid_documents'] as List<dynamic>?)
+              ?.map(
+                (docJson) => PlayerValidDocModel.fromMap(
+                  docJson as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          <PlayerValidDocModel>[],
       user: User.fromMap(map['user'] as Map<String, dynamic>),
       playerCreatedAt: map['player_created_at'] as String,
       playerUpdatedAt: map['player_updated_at'] as String,

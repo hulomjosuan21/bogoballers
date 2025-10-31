@@ -4,11 +4,13 @@ import 'package:bogoballers/core/models/player_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/services/entity_service.dart';
 import 'package:bogoballers/core/services/player/player_team_service.dart';
+import 'package:bogoballers/core/utils/custom_exceptions.dart';
 import 'package:bogoballers/core/utils/error_handler.dart';
 import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:bogoballers/screens/player_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 
 class TeamManagerTeamScreen extends StatefulWidget {
@@ -220,11 +222,6 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
             child: VerticalDivider(thickness: 1, color: colors.gray5),
           ),
           StatCell(value: widget.team.totalLosses.toString(), label: 'Losses'),
-          SizedBox(
-            height: 32,
-            child: VerticalDivider(thickness: 1, color: colors.gray5),
-          ),
-          StatCell(value: widget.team.totalDraws.toString(), label: 'Draws'),
         ],
       ),
     );
@@ -305,14 +302,184 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
   }
 }
 
-class _PlayerListItem extends StatelessWidget {
+class _PlayerListItem extends ConsumerStatefulWidget {
   final List<Permission> permissions;
   const _PlayerListItem({required this.player, required this.permissions});
   final PlayerTeam player;
 
   @override
+  ConsumerState<_PlayerListItem> createState() => _PlayerListItemState();
+}
+
+class _PlayerListItemState extends ConsumerState<_PlayerListItem> {
+  void _showOptionsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Choose an action',
+                style: TextStyle(
+                  fontSize: Sizes.fontSizeLg,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          content: const Text('What do you want to do with this player?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  useRootNavigator: true,
+                  builder: (_) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+
+                try {
+                  final response = await PlayerTeamService.toggleTeamCaptain(
+                    widget.player.playerTeamId,
+                  );
+
+                  // ✅ Close loader
+                  if (context.mounted) {
+                    Navigator.of(context, rootNavigator: true).pop();
+                  }
+
+                  if (context.mounted) {
+                    showAppSnackbar(
+                      context,
+                      message: response.message,
+                      title: "Success",
+                      variant: SnackbarVariant.success,
+                    );
+
+                    final parentState = context
+                        .findAncestorStateOfType<_TeamManagerTeamScreenState>();
+
+                    if (parentState != null) {
+                      parentState.setState(() {
+                        for (final player
+                            in parentState.widget.team.acceptedPlayers) {
+                          player.isTeamCaptain = false;
+                        }
+                        widget.player.isTeamCaptain = true;
+                      });
+                    }
+
+                    // ✅ Close the dialog
+                    Navigator.of(context).pop();
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    handleErrorCallBack(e, (message) {
+                      showAppSnackbar(
+                        context,
+                        message: message,
+                        title: "Error",
+                        variant: SnackbarVariant.error,
+                      );
+                    });
+                  }
+                }
+              },
+              child: const Text('Set Captain'),
+            ),
+
+            // 🔹 REMOVE PLAYER ACTION
+            TextButton(
+              onPressed: () async {
+                if (!context.mounted) return;
+                Navigator.pop(context); // close action dialog
+
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Remove Player'),
+                    content: const Text(
+                      'Are you sure you want to remove this player?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Remove'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmed != true || !context.mounted) return;
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  useRootNavigator: true,
+                  builder: (_) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+
+                try {
+                  final response = await PlayerTeamService.removePlayerFromTeam(
+                    widget.player.playerTeamId,
+                  );
+
+                  // ✅ Close loader
+                  if (context.mounted) {
+                    Navigator.of(context, rootNavigator: true).pop();
+                  }
+
+                  // ✅ Handle success
+                  if (context.mounted) {
+                    showAppSnackbar(
+                      context,
+                      message: response.message,
+                      title: "Success",
+                      variant: SnackbarVariant.success,
+                    );
+
+                    // ✅ Pop dialog after success
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    handleErrorCallBack(e, (message) {
+                      showAppSnackbar(
+                        context,
+                        message: message,
+                        title: "Error",
+                        variant: SnackbarVariant.error,
+                      );
+                    });
+                  }
+                }
+              },
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return Card(
       color: colors.surface,
       elevation: 0,
@@ -322,19 +489,46 @@ class _PlayerListItem extends StatelessWidget {
       ),
       margin: const EdgeInsets.symmetric(vertical: Sizes.spaceXs),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(player.profileImageUrl),
-          backgroundColor: colors.gray4,
-        ),
-        title: Text(
-          player.fullName,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: colors.textPrimary,
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(Sizes.radiusSm),
+          child: Image.network(
+            widget.player.profileImageUrl,
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
           ),
         ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.player.fullName,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
+                ),
+              ),
+            ),
+            if (widget.player.isTeamCaptain)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colors.color9,
+                  borderRadius: BorderRadius.circular(Sizes.spaceLg),
+                ),
+                child: Text(
+                  'Captain',
+                  style: TextStyle(
+                    color: colors.contrast,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
         subtitle: Text(
-          '#${player.jerseyNumber.toInt()} | ${player.jerseyName}',
+          '#${widget.player.jerseyNumber.toInt()} | ${widget.player.jerseyName}',
           style: TextStyle(
             color: colors.textSecondary,
             fontSize: Sizes.fontSizeSm,
@@ -344,11 +538,14 @@ class _PlayerListItem extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  PlayerScreen(permissions: permissions, result: player),
+              builder: (context) => PlayerScreen(
+                permissions: widget.permissions,
+                result: widget.player,
+              ),
             ),
           );
         },
+        onLongPress: _showOptionsDialog,
       ),
     );
   }

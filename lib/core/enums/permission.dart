@@ -6,6 +6,8 @@ enum Permission {
   editPlayerProfile,
   viewNotRoster,
   chat,
+  joinAsGuestPlayer,
+  uploadDocPlayer,
 }
 
 List<Permission> userPermission(String? accountType) {
@@ -16,6 +18,7 @@ List<Permission> userPermission(String? accountType) {
         Permission.joinLeague,
         Permission.editPlayerProfile,
         Permission.chat,
+        Permission.joinAsGuestPlayer,
       ];
     case 'Team_Manager':
       return [

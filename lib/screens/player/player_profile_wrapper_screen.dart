@@ -28,7 +28,10 @@ class _PlayerProfileWrapperScreenState
       error: (err, stack) => Center(child: Text('Error: $err')),
       data: (player) {
         return PlayerScreen(
-          permissions: [Permission.editPlayerProfile],
+          permissions: [
+            Permission.editPlayerProfile,
+            Permission.uploadDocPlayer,
+          ],
           result: player,
         );
       },
