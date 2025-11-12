@@ -1,4 +1,5 @@
 import 'package:bogoballers/core/constants/size.dart';
+import 'package:bogoballers/screens/chatbot_screen.dart';
 import 'package:bogoballers/screens/conversation_list_screen.dart';
 import 'package:bogoballers/screens/entity_league_screen.dart';
 import 'package:bogoballers/screens/player/player_home_screen.dart';
@@ -45,6 +46,7 @@ class PlayerBottomNavigationController extends GetxController {
   final List<Widget> screens = [
     const PlayerHomeScreen(),
     const EntityLeagueScreen(),
+    const ChatbotScreen(),
     const ConversationListScreen(),
     const PlayerProfileWrapperScreen(),
   ];
@@ -102,15 +104,21 @@ Obx playerBottomNavigation({
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
+          icon: Iconsax.message_programming,
+          label: "Mentor",
+          index: 2,
+          selectedIndex: controller.selectedIndex,
+        ),
+        NavigationDestinationItem(
           icon: Iconsax.message,
           label: "Chats",
-          index: 2,
+          index: 3,
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
           icon: Iconsax.user,
           label: "Me",
-          index: 3,
+          index: 4,
           selectedIndex: controller.selectedIndex,
         ),
       ],
