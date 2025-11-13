@@ -1,6 +1,7 @@
 import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/widget/league_carousel.dart';
 import 'package:bogoballers/screens/league_match_list.dart';
 import 'package:bogoballers/screens/notification_screen.dart';
 import 'package:bogoballers/screens/search_screen.dart';
@@ -68,6 +69,8 @@ class PlayerHomeScreen extends StatelessWidget {
                 ),
               ),
             ),
+            SizedBox(height: Sizes.spaceMd),
+            const LeagueCarousel(accountType: 'Player'),
             SizedBox(height: Sizes.spaceMd),
             const LeagueMatchesList(),
           ],

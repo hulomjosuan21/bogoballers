@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'dart:ui'
-    as ui; // dart:ui is still needed for Rect, but not for isolate work
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
@@ -194,7 +191,6 @@ class AppImagePicker extends StatefulWidget {
 class _AppImagePickerState extends State<AppImagePicker> {
   Uint8List? _avatarBytes;
   dio.MultipartFile? _multipartFile;
-  String? _fileName;
 
   @override
   void initState() {
@@ -306,7 +302,6 @@ class _AppImagePickerState extends State<AppImagePicker> {
 
       setState(() {
         _avatarBytes = finalBytes;
-        _fileName = newFileName;
         _multipartFile = dio.MultipartFile.fromBytes(
           finalBytes!,
           filename: newFileName,

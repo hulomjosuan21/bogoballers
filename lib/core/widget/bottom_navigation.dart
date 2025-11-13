@@ -104,7 +104,7 @@ Obx playerBottomNavigation({
           selectedIndex: controller.selectedIndex,
         ),
         NavigationDestinationItem(
-          icon: Iconsax.message_programming,
+          icon: Iconsax.message_text,
           label: "Mentor",
           index: 2,
           selectedIndex: controller.selectedIndex,

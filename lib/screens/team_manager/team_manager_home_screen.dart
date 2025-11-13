@@ -2,6 +2,7 @@ import 'package:bogoballers/core/constants/size.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
 import 'package:bogoballers/core/providers/team_manager_provider.dart';
 import 'package:bogoballers/core/services/test_service.dart';
+import 'package:bogoballers/core/widget/league_carousel.dart';
 import 'package:bogoballers/screens/league_match_list.dart';
 import 'package:bogoballers/screens/notification_screen.dart';
 import 'package:bogoballers/screens/search_screen.dart';
@@ -98,6 +99,8 @@ class _TeamManagerHomeScreenState extends ConsumerState<TeamManagerHomeScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: Sizes.spaceMd),
+                const LeagueCarousel(accountType: 'Team_Manager'),
                 SizedBox(height: Sizes.spaceMd),
                 const LeagueMatchesList(),
               ],

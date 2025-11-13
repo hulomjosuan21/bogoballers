@@ -1,3 +1,4 @@
+import 'package:bogoballers/core/models/league_model.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
@@ -22,6 +23,20 @@ class LeagueService {
       throw Exception(
         e.response?.data['message'] ?? e.message ?? "Something went wrong",
       );
+    }
+  }
+
+  static Future<List<League>> leagueCarouselItems() async {
+    final api = DioClient().client;
+
+    try {
+      final response = await api.get('/league/carousel');
+      final list = (response.data as List)
+          .map((e) => League.fromMap(e))
+          .toList();
+      return list;
+    } catch (e) {
+      return [];
     }
   }
 }

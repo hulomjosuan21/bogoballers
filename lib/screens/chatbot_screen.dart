@@ -1,4 +1,7 @@
+import 'package:bogoballers/core/utils/custom_exceptions.dart';
+import 'package:bogoballers/core/widget/snackbars.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:bogoballers/core/services/ai_mentor_service.dart';
 import 'package:bogoballers/core/services/secure_storage_service.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -18,6 +21,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   List<Map<String, dynamic>> messages = [];
   bool _isLoading = false;
+  bool _isTyping = false;
   String? _userId;
 
   @override
@@ -29,19 +33,27 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   Future<void> _initializeUserAndChat() async {
     try {
       final creds = await getEntityCredentialsFromStorage();
-      setState(() => _userId = creds.userId);
-
+      _userId = creds.userId;
       await _loadHistory();
+      setState(() {});
     } catch (e) {
-      print('❌ Failed to load user credentials: $e');
+      if (context.mounted) {
+        handleErrorCallBack(e, (message) {
+          showAppSnackbar(
+            context,
+            message: message,
+            title: "Error",
+            variant: SnackbarVariant.error,
+          );
+        });
+      }
     }
   }
 
-  /// 🔐 Helper from your auth utils
+  /// 🔐 Decode JWT and extract IDs
   Future<({String userId, String entityId, String accountType})>
   getEntityCredentialsFromStorage() async {
     final token = await SecureStorageService.instance.read("ACCESS_TOKEN");
-
     if (token == null || token.isEmpty) {
       throw Exception("No access token found");
     }
@@ -61,10 +73,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return (userId: userId, entityId: entityId, accountType: accountType);
   }
 
-  /// 🧠 Load chat history
   Future<void> _loadHistory() async {
     if (_userId == null) return;
-
     final history = await _aiService.getHistory(_userId!);
     setState(() {
       messages = history
@@ -72,6 +82,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             (msg) => {
               'role': msg['role'] ?? '',
               'content': msg['content'] ?? '',
+              'time':
+                  msg['created_at'] ?? DateTime.now().toUtc().toIso8601String(),
             },
           )
           .toList();
@@ -84,35 +96,50 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
+    final now = DateTime.now().toUtc().toIso8601String();
+
     setState(() {
-      messages.add({'role': 'user', 'content': text});
-      _isLoading = true;
+      messages.add({'role': 'user', 'content': text, 'time': now});
+      _controller.clear();
+      _isTyping = true;
     });
-    _controller.clear();
+
+    _scrollToBottom();
 
     final res = await _aiService.sendMessage(userId: _userId!, message: text);
 
-    if (res != null) {
-      setState(() {
+    setState(() {
+      _isTyping = false;
+      if (res != null) {
         messages.add({
           'role': res['coach']['role'],
           'content': res['coach']['content'],
+          'time': DateTime.now().toUtc().toIso8601String(),
         });
-      });
-    }
+      }
+    });
 
-    setState(() => _isLoading = false);
     _scrollToBottom();
   }
 
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
+  }
+
+  String _formatTimestamp(DateTime time) {
+    int hour = time.hour;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 == 0 ? 12 : hour % 12;
+    return "$hour:$minute $period";
   }
 
   @override
@@ -125,6 +152,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           "🏀 Coach Wan",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        flexibleSpace: Container(color: colors.gray1),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -138,84 +166,188 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       ),
       body: _userId == null
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(12),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = messages[index];
-                      final isUser = msg['role'] == 'user';
-                      return Align(
-                        alignment: isUser
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: isUser ? colors.color9 : colors.gray3,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Text(
-                            msg['content'] ?? '',
-                            style: TextStyle(
-                              color: isUser ? colors.gray1 : colors.gray12,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [colors.gray1, colors.gray2, colors.gray3],
                 ),
-                if (_isLoading)
-                  const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: CircularProgressIndicator(),
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(12),
+                      itemCount: messages.length + (_isTyping ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (_isTyping && index == messages.length) {
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: _buildTypingBubble(colors),
+                          );
+                        }
+
+                        final msg = messages[index];
+                        final isUser = msg['role'] == 'user';
+                        return Align(
+                          alignment: isUser
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: _buildChatBubble(msg, isUser, colors),
+                        );
+                      },
+                    ),
                   ),
-                _buildInputBar(),
-              ],
+                  if (_isLoading)
+                    const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: CircularProgressIndicator(),
+                    ),
+                  _buildInputBar(colors),
+                ],
+              ),
             ),
     );
   }
 
-  Widget _buildInputBar() {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-    return Container(
-      padding: const EdgeInsets.all(8),
-      child: Row(
+  Widget _buildChatBubble(
+    Map<String, dynamic> msg,
+    bool isUser,
+    AppThemeColors colors,
+  ) {
+    final timestamp = msg['time'] != null
+        ? _formatTimestamp(DateTime.parse(msg['time']).toLocal())
+        : '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      child: Column(
+        crossAxisAlignment: isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              textInputAction: TextInputAction.send,
-              decoration: InputDecoration(
-                hintText: "Ask Coach Wan...",
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+          Container(
+            padding: const EdgeInsets.all(12),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.8,
+            ),
+            decoration: BoxDecoration(
+              color: isUser ? colors.color9 : colors.gray3,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(16),
+                topRight: const Radius.circular(16),
+                bottomLeft: isUser
+                    ? const Radius.circular(16)
+                    : const Radius.circular(4),
+                bottomRight: isUser
+                    ? const Radius.circular(4)
+                    : const Radius.circular(16),
+              ),
+            ),
+            child: MarkdownBody(
+              data: msg['content'] ?? '',
+              selectable: true,
+              softLineBreak: true,
+              styleSheet: MarkdownStyleSheet(
+                p: TextStyle(
+                  color: isUser ? colors.gray1 : colors.gray12,
+                  fontSize: 15,
+                  height: 1.4,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                strong: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isUser ? colors.gray1 : colors.gray12,
                 ),
               ),
-              onSubmitted: (_) => _sendMessage(),
             ),
           ),
-          const SizedBox(width: 8),
-          CircleAvatar(
-            backgroundColor: colors.color9,
-            child: IconButton(
-              icon: Icon(Icons.send, color: colors.gray1),
-              onPressed: _sendMessage,
-            ),
-          ),
+          const SizedBox(height: 4),
+          Text(timestamp, style: TextStyle(fontSize: 11, color: colors.gray9)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTypingBubble(AppThemeColors colors) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.gray3,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomRight: Radius.circular(16),
+          bottomLeft: Radius.circular(4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _dot(colors, 0),
+          const SizedBox(width: 4),
+          _dot(colors, 200),
+          const SizedBox(width: 4),
+          _dot(colors, 400),
+        ],
+      ),
+    );
+  }
+
+  Widget _dot(AppThemeColors colors, int delay) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 1),
+      duration: const Duration(milliseconds: 1000),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) => Opacity(opacity: value, child: child),
+      onEnd: () => setState(() {}),
+      child: Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(color: colors.gray10, shape: BoxShape.circle),
+      ),
+    );
+  }
+
+  Widget _buildInputBar(AppThemeColors colors) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                textInputAction: TextInputAction.send,
+                decoration: InputDecoration(
+                  hintText: "Ask Coach Wan...",
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                onSubmitted: (_) => _sendMessage(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            CircleAvatar(
+              backgroundColor: colors.color9,
+              child: IconButton(
+                icon: Icon(Icons.send, color: colors.gray1),
+                onPressed: _sendMessage,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
