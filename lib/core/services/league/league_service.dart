@@ -1,4 +1,5 @@
 import 'package:bogoballers/core/models/league_model.dart';
+import 'package:bogoballers/core/models/league_participation.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
@@ -34,6 +35,31 @@ class LeagueService {
       final list = (response.data as List)
           .map((e) => League.fromMap(e))
           .toList();
+      return list;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<List<LeagueParticipation>> fetchParticipation({
+    String? userId,
+    String? playerId,
+  }) async {
+    final api = DioClient().client;
+
+    try {
+      final response = await api.get(
+        '/league/participation',
+        queryParameters: {
+          if (userId != null) 'user_id': userId,
+          if (playerId != null) 'player_id': playerId,
+        },
+      );
+
+      final list = (response.data as List)
+          .map((e) => LeagueParticipation.fromMap(e))
+          .toList();
+
       return list;
     } catch (e) {
       return [];

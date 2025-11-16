@@ -96,7 +96,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return DefaultTabController(
-      length: 2, // For Pending & Invited
+      length: 2,
       child: Scaffold(
         backgroundColor: colors.background,
         appBar: AppBar(
@@ -250,6 +250,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 itemBuilder: (context, index) {
                   final player = widget.team.pendingPlayers[index];
                   return _PlayerListItem(
+                    allowActions: false,
                     player: player,
                     permissions: widget.permissions,
                   );
@@ -260,6 +261,7 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
                 itemBuilder: (context, index) {
                   final player = widget.team.invitedPlayers[index];
                   return _PlayerListItem(
+                    allowActions: false,
                     player: player,
                     permissions: widget.permissions,
                   );
@@ -303,8 +305,13 @@ class _TeamManagerTeamScreenState extends State<TeamManagerTeamScreen> {
 }
 
 class _PlayerListItem extends ConsumerStatefulWidget {
+  final bool allowActions;
   final List<Permission> permissions;
-  const _PlayerListItem({required this.player, required this.permissions});
+  const _PlayerListItem({
+    required this.player,
+    this.allowActions = true,
+    required this.permissions,
+  });
   final PlayerTeam player;
 
   @override
@@ -539,13 +546,14 @@ class _PlayerListItemState extends ConsumerState<_PlayerListItem> {
             context,
             MaterialPageRoute(
               builder: (context) => PlayerScreen(
+                allowInvite: false,
                 permissions: widget.permissions,
                 result: widget.player,
               ),
             ),
           );
         },
-        onLongPress: _showOptionsDialog,
+        onLongPress: widget.allowActions ? _showOptionsDialog : null,
       ),
     );
   }

@@ -50,7 +50,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     }
   }
 
-  /// 🔐 Decode JWT and extract IDs
   Future<({String userId, String entityId, String accountType})>
   getEntityCredentialsFromStorage() async {
     final token = await SecureStorageService.instance.read("ACCESS_TOKEN");

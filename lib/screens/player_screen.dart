@@ -29,11 +29,13 @@ String formatRfcDate(String rfcDateString) {
 }
 
 class PlayerScreen extends ConsumerStatefulWidget {
+  final bool allowInvite;
   final List<Permission> permissions;
   final Player result;
 
   const PlayerScreen({
     super.key,
+    this.allowInvite = true,
     required this.permissions,
     required this.result,
   });
@@ -216,16 +218,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             const SizedBox(height: Sizes.spaceLg),
             Row(
               children: [
-                if (hasPermissions(
-                  widget.permissions,
-                  required: [Permission.invitePlayer],
-                ))
+                if (widget.allowInvite &&
+                    hasPermissions(
+                      widget.permissions,
+                      required: [Permission.invitePlayer],
+                    ))
                   GFButton(
                     onPressed: isProcessing ? null : _handleInvite,
                     text: "Invite this Player",
                     color: colors.color9,
                     size: GFSize.SMALL,
                   ),
+
                 SizedBox(width: Sizes.spaceMd),
                 if (hasPermissions(
                   widget.permissions,

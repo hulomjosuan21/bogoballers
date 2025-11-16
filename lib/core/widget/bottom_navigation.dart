@@ -45,7 +45,7 @@ class PlayerBottomNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const PlayerHomeScreen(),
-    const EntityLeagueScreen(),
+    const EntityLeagueScreen(accountType: ParamAccountType.player),
     const ChatbotScreen(),
     const ConversationListScreen(),
     const PlayerProfileWrapperScreen(),
@@ -57,7 +57,7 @@ class TeamManagerNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const TeamManagerHomeScreen(),
-    const EntityLeagueScreen(),
+    const EntityLeagueScreen(accountType: ParamAccountType.manager),
     const TeamManagerTeamsScreen(),
     const ConversationListScreen(),
   ];

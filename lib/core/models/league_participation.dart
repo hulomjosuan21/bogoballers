@@ -13,7 +13,7 @@ class LeagueParticipation {
     required this.matches,
   });
 
-  factory LeagueParticipation.fromJson(Map<String, dynamic> json) {
+  factory LeagueParticipation.fromMap(Map<String, dynamic> json) {
     final teamsJson = json['teams'] as List<dynamic>? ?? [];
     final matchesJson = json['matches'] as List<dynamic>? ?? [];
 
