@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   final emailController = TextEditingController();
-  final passwordController = TextEditingController(text: 'password123');
+  final passwordController = TextEditingController();
 
   Future<void> test() async {
     await EntityService.fetchEntityRedirect();

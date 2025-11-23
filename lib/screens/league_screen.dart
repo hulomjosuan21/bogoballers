@@ -551,10 +551,10 @@ class _LeagueCategoryScreenState extends State<LeagueCategoryScreen> {
                 ),
                 if (widget.leagueCategory.requiresValidDocument &&
                     widget.leagueCategory.allowedDocuments != null)
-                  InfoListTile(
+                  InfoListTileCompact(
                     colors: colors,
                     icon: Icons.description_outlined,
-                    label: 'Allowed Documents',
+                    label: 'Required Documents',
                     values: widget.leagueCategory.allowedDocuments,
                   ),
               ],

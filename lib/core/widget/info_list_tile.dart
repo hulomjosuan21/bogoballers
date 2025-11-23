@@ -79,3 +79,80 @@ class InfoListTile extends StatelessWidget {
     );
   }
 }
+
+class InfoListTileCompact extends StatelessWidget {
+  final AppThemeColors colors;
+  final IconData icon;
+  final String label;
+  final List<String>? values;
+
+  const InfoListTileCompact({
+    super.key,
+    required this.colors,
+    required this.icon,
+    required this.label,
+    this.values,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValues = values != null && values!.isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Sizes.spaceMd,
+        vertical: Sizes.spaceXs,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: Sizes.fontSizeXl, color: colors.textSecondary),
+          const SizedBox(width: Sizes.spaceMd),
+
+          // 🔥 LABEL + VALUES stacked
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Label
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: Sizes.fontSizeSm,
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: Sizes.spaceXs),
+
+                // Values
+                if (hasValues)
+                  ...values!.map(
+                    (value) => Padding(
+                      padding: const EdgeInsets.only(bottom: Sizes.spaceXs),
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: Sizes.fontSizeSm,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    'N/A',
+                    style: TextStyle(
+                      fontSize: Sizes.fontSizeSm,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
